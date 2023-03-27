@@ -17,7 +17,3 @@ CREATE TABLE `sessions` (
 );
 
 
-INSERT INTO `users` (`username`, `password`)
-VALUES ('Admin', 'masterpass'),
-       ('user2', 'password2_hashed'),
-       ('user3', 'password3_hashed');
