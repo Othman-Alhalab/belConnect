@@ -28,7 +28,7 @@
         if ($result) {
             // Login successful
             $_SESSION['username'] = $user;
-            header("Location: hem.php");
+            header("Location: profile.php");
         } else {
             // Login failed
             echo "Invalid username or password";
@@ -51,13 +51,13 @@
     <h2>Login</h2>
 	<form method="post" action="">
 		<label for="username">Username:</label>
-		<input type="text" id="username" name="username" placeholder="admin"><br><br>
+		<input type="text" id="username" name="username"><br><br>
 		<label for="password">Password:</label>
-		<input type="password" id="password" name="password" placeholder="mypass123"><br><br>
+		<input type="password" id="password" name="password"><br><br>
 		<p><a href="./register.php">Register Account</a></p>
 		<input type="submit" value="Login">
 	</form>
 
-    <button><a href="./hem.php">hack?</a></button>
+    <button><a href="./profile.php">hack?</a></button>
 </body>
 </html>

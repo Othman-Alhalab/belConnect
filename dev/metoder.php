@@ -6,4 +6,6 @@
     function inputTest($str){
         return preg_match('/\S/', $str) && preg_match('/[a-zA-Z]/', $str);
     };
+
+    
 ?>
