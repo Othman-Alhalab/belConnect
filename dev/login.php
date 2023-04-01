@@ -28,7 +28,7 @@
         if ($result) {
             // Login successful
             $_SESSION['username'] = $user;
-            header("Location: profile.php");
+            header("Location: home.php");
         } else {
             // Login failed
             echo "Invalid username or password";
@@ -57,7 +57,5 @@
 		<p><a href="./register.php">Register Account</a></p>
 		<input type="submit" value="Login">
 	</form>
-
-    <button><a href="./profile.php">hack?</a></button>
 </body>
 </html>

@@ -1,0 +1,6 @@
+- Fixa login säkerhet
+
+- Password reset (säkerhets frågor)
+
+- Säkerhets frågor vid registrering
+

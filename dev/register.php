@@ -55,7 +55,7 @@
         try {
             if ($conn->query($send) === TRUE) {
                 
-                echo "User was successfully registerd";
+                header('Location: login.php');
     
             } else {
                 //echo "err: " . $send . "<br>" . $conn->error;
