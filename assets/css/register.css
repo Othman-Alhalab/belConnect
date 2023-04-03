@@ -1,4 +1,7 @@
-
+	*{
+		padding: 0;
+		margin: 0;
+	}
 		body {
 			font-family: Arial, sans-serif;
 			background-color: #f2f2f2;
@@ -23,7 +26,7 @@
 		}
 		input[type="text"],
 		input[type="password"],
-		input[type="date"] {
+		input[type="number"] {
 			padding: 5px;
 			width: 200px;
 			border: 1px solid #ccc;
