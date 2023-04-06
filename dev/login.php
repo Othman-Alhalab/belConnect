@@ -14,7 +14,7 @@
             die("Connection failed: " . mysqli_connect_error());
         }
     
-        $stmt = mysqli_prepare($conn, "SELECT username, password, email, firstname, lastname FROM users WHERE username = ? AND password = ?");
+        $stmt = mysqli_prepare($conn, "SELECT id, username, password, email, firstname, lastname FROM users WHERE username = ? AND password = ?");
     
         mysqli_stmt_bind_param($stmt, "ss", $user, $pass);
     
@@ -28,6 +28,7 @@
             $_SESSION['username'] = $row['username'];
             $_SESSION['password'] = $row['password'];
             $_SESSION['email'] = $row['email'];
+            $_SESSION['id'] = $row['id'];
             $_SESSION['firstname'] = $row['firstname'];
             $_SESSION['lastname'] = $row['lastname'];
     
