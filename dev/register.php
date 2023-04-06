@@ -4,108 +4,142 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Account BelConnect</title>
-    <link rel="stylesheet" href="../assets/css/register.css">
+    <link rel="stylesheet" href="../assets/css/registerrrrr.css">
+ 
 </head>
 <body>
-    <h2>Register</h2>
-        <form method="post" action="">
+
+    <form method="post" action="">
+    <h2 id="regid">Register</h2>
+        <div class="slide">
+            <label for="firstname">* First Name:</label>
+            <input type="text" id="firstname" name="firstname" required><br><br>
+
+            <label for="lastname">* Last Name:</label>
+            <input type="text" id="lastname" name="lastname" required><br><br>
+
             <label for="username">* Username:</label>
             <input type="text" id="username" name="username" required><br><br>
 
+            <label for="email">* Email:</label>
+            <input type="email" id="email" name="email" required><br><br>
+
+            <button type="button" class="next">Next</button>
+        </div>
+        <div class="slide">
             <label for="password">* Password:</label>
             <input type="password" id="password" name="password" pattern=".{8,}" required><br><br>
-            
 
             <label for="password_con">* Confirm Password:</label>
             <input type="password" id="password_con" name="password_con" pattern=".{8,}" required>
-            <p id="theMatch">Match</p>
-            
-            
             <br>
-            <label for="dob">* Age:</label>
-            <input type="number" id="dob" name="dob" required min="12" max="999"><br><br>
+            <p id="theMatch">Match</p>
+
+            <button type="button" class="prev">Previous</button>
+            <br><br>
 
             <input type="submit" value="Register">
-            <p><a href="./login.php">Already have an account?</a></p>
-        </form>
-
-        <script>
-            const pass = document.getElementById('password')
-            const pass_con = document.getElementById('password_con')
-            const theM = document.getElementById('theMatch')
-
-            //när hemsidan laddar in är P taggen osynlig
-            theM.innerText = ""
-
             
+        </div>
+    </form>
+<p><a href="./login.php">Already have an account?</a></p>
+    <script>
+        let en = false
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.querySelector('.prev');
+        const nextBtn = document.querySelector('.next');
+        let currentSlide = 0;
 
-        function passwordmatch(){
-            if(pass == pass_con){
-                theM.innerText = "Inputs match!";
-            }else{
-                theM.innerText = "Does not match"
+        function showSlide(n) {
+            slides[currentSlide].style.display = "none";
+            slides[n].style.display = "block";
+            currentSlide = n;
+        }
+
+        function validatePassword() {
+            const password = document.getElementById("password");
+            const confirm_password = document.getElementById("confirm_password");
+            if (password.value !== confirm_password.value) {
+                confirm_password.setCustomValidity("Passwords do not match");
+                document.getElementById("theMatch").innerHTML = "Not Match";
+            } else {
+                confirm_password.setCustomValidity("");
+                document.getElementById("theMatch").innerHTML = "Match";
             }
         }
-                    
-            
-            pass.addEventListener("input", function(event) {
-                if (!pass.validity.valid) {
-                    pass.setCustomValidity("");
-                } else {
-                    pass.setCustomValidity("Password must be at least 8 characters long.");
-                }
-            });
 
-        document.getElementById("password_con").addEventListener("input", passwordmatch)
+        function validateForm() {
+            validatePassword();
+            const form = document.querySelector('form');
+            form.reportValidity();
+        }
+
+        nextBtn.addEventListener('click', () => {
+            showSlide(currentSlide + 1);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            showSlide(currentSlide - 1);
+        });
+
+        const password = document.getElementById("password");
+        const confirm_password = document.getElementById("confirm_password");
+        password.addEventListener("input", validatePassword);
+        confirm_password.addEventListener("input", validatePassword);
     </script>
-
 </body>
 </html>
 
 <?php
 require "metoder.php";
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "BelConnectDB";
+require "config.php";
 
-//Kollar om något finns i "$_POST['username']" och "$_POST['password']"
+
 if (isset($_POST["username"]) && isset($_POST["password"])) {
     $user = $_POST["username"];
     $pass = $_POST["password"];
-    $confirmPass = $_POST["password_con"];
-    $conn = mysqli_connect($servername, $username, $password, $dbname);
+    $email = $_POST['email'];
 
-    // Check connection
+    $firstname = $_POST['firstname'];
+    $lastname = $_POST['lastname'];
+    $confirmPass = $_POST["password_con"];
+    $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+    
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
+
     $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ?");
     mysqli_stmt_bind_param($stmt, "s", $user);
     mysqli_stmt_execute($stmt);
     $result = mysqli_num_rows(mysqli_stmt_get_result($stmt));
 
-    if ($pass == $confirmPass) {
+    if (isset($pass, $confirmPass) && $pass == $confirmPass) {
         if (!inputTest($user)) {
             echo "Invalid username format!";
-        } elseif (!$result) {
-            $send = "INSERT INTO users (username, password) VALUES ('$user', '$pass')";
         } else {
-            echo "Username already in use!";
+            $username_lowercase = strtolower($user);
+            $result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
+            if ($result->num_rows == 0) {
+                $send = "INSERT INTO users (username, password, email, firstname, lastname) VALUES ('$user', '$pass', '$email', '$firstname', '$lastname')";
+                try {
+                    if ($conn->query($send) === true) {
+                        header("Location: login.php");
+                    } else {
+                        echo "Error: " . $conn->error;
+                    }
+                } catch (\Throwable $th) {
+                    echo "Error: " . $th->getMessage();
+                }
+            } else {
+                echo "Username already in use!";
+            }
         }
     } else {
         echo "Passwords do not match";
     }
-
-    try {
-        if ($conn->query($send) === true) {
-            header("Location: login.php");
-        } else {
-            //echo "err: " . $send . "<br>" . $conn->error;
-        }
-    } catch (\Throwable $th) {
-        //throw $th;
-    }
+    
+    
 
     mysqli_close($conn);
 }

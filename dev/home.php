@@ -64,7 +64,7 @@
                 while ($row = $result->fetch_assoc()) {
                     echo '<div class="post-container">';
                     echo '<div class="post-header">' . $row['post_name'] . '</div>';
-                    echo '<div class="post-meta">By ' . $row['username'] . ' on ' . $row['created_at'] . '</div>';
+                    echo '<div class="post-meta">By ' . $row['author'] . ' on ' . $row['created_at'] . '</div>';
                     echo '<div class="post-content">' . $row['post_data'] . '</div>';
 
                     // Display the tags for the post

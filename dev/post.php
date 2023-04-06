@@ -9,15 +9,23 @@
         <a href="./editProfile.php">Edit Profile</a>
         <a href="./logout.php">Logout</a>
         </nav>
-    <link rel="stylesheet" href="../assets/css/post.css">
+    <link rel="stylesheet" href="../assets/css/postt.css">
     <h1>Create Post</h1>
     <form method="post" action="">
     <label for="post-name">Post Name:</label>
     <input type="text" name="post-name" id="post-name">
 
-    <label for="post-data">Post Data:</label>
+    <label for="post-data">Content:</label>
     <textarea name="post-data" id="post-data"></textarea>
+    
+    <div class="checkbox-container">
+        <input type="checkbox" name="anonymous" id="anonymous">
+    <span id="anonymous-label">Anonymous Post</span>
+    
+    </div>
 
+    <br>
+    <br>
     <label>Tags:</label>
     <div class="checkbox-container">
         <input type="checkbox" name="tags[]" value="programming" id="programming-tag">
@@ -36,14 +44,17 @@
         <label for="other-tag">Other</label>
     </div>
 
+    
+
     <input type="submit" value="Submit">
     
-    <?php echo "USER: ".$_SESSION['username']?>
+    <?php echo "USER: " . $_SESSION['username']?>
     </form>
             <h1>My posts</h1>
 
 
 <?php
+    //Till att skriva ut "Mina" posts (inloggade användarens posts)
     if(isset($_SESSION['username'])) {
         
         $usr = $_SESSION['username'];
@@ -59,7 +70,7 @@
         while ($row = $result->fetch_assoc()) {
             echo '<div class="post-container">';
             echo '<div class="post-header">' . $row['post_name'] . '</div>';
-            echo '<div class="post-meta">By ' . $row['username'] . ' on ' . $row['created_at'] . '</div>';
+            echo '<div class="post-meta">By ' . $row['author'] . " (you)". ' on ' . $row['created_at'] . '</div>';
             echo '<div class="post-content">' . $row['post_data'] . '</div>';
 
             // Display the tags for the post
@@ -84,7 +95,7 @@
 
 
 <?php
-    
+    //Till att lägga upp inlägg
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
     
        if(isset($_POST['post-name']) && isset($_POST['tags'])){
@@ -96,13 +107,14 @@
             $conn = mysqli_connect($servername, $username, $password, $dbname);
             
             $username = $_SESSION['username'];
-            $postName = $_POST['post-name'];
-            $postData = $_POST['post-data'];
+            $postName = strip_tags($_POST['post-name']);
+            $postData = strip_tags($_POST['post-data']);
+            $author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['username'];
             $tags = implode(',', $_POST['tags']);
             
-            $sql = "INSERT INTO posts (username, post_name, post_data, tags) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO posts (author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('ssss', $username, $postName, $postData, $tags);
+            $stmt->bind_param('sssss', $author ,$username, $postName, $postData, $tags);
             $stmt->execute();
             header("Location: post.php");
          }else{
@@ -116,3 +128,4 @@
     }
     
 ?>
+

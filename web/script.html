@@ -7,22 +7,27 @@
 </head>
 <body>
     
-    <label for="password_con">* Confirm Password:</label>
-    <input type="password" id="password_con" name="password_con" required oninput=""><br><br>
-    <p id="theMatch">Match</p>
-
-    <script>
-        function matchd(){
-            const pass = document.getElementById('password_con').value
-            const pass_con = document.getElementById('password_con').value
-            const theM = document.getElementById('theMatch').innerHTML
-            if(pass == pass_con){
-                theM = "Matches"
-            }else{
-                theM = "Does not match"
-            }
-            if(pass.length)
+    <style>
+        nav a:hover {
+        text-decoration: underline;
         }
-    </script>
+        nav {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background-color: #007bff;
+        padding: 10px;
+        color: #fff;
+        }
+
+        nav a {
+        margin-right: 20px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 20px;
+        font-weight: bold;
+        }
+    </style>
 </body>
 </html>

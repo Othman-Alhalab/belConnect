@@ -1,42 +1,46 @@
 <?php
     require 'metoder.php';
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "BelConnectDB";
+    require "config.php";
 
     session_start();
 
     if(isset($_POST['username']) && isset($_POST['password'])) {
         $user = $_POST['username'];
         $pass = $_POST['password'];
-        $conn = mysqli_connect($servername, $username, $password, $dbname);
-
+        $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+    
         // Check connection
         if (!$conn) {
             die("Connection failed: " . mysqli_connect_error());
         }
-
-        $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ? AND password = ?");
-
+    
+        $stmt = mysqli_prepare($conn, "SELECT username, password, email, firstname, lastname FROM users WHERE username = ? AND password = ?");
+    
         mysqli_stmt_bind_param($stmt, "ss", $user, $pass);
-
+    
         mysqli_stmt_execute($stmt);
-
-        $result = mysqli_num_rows(mysqli_stmt_get_result($stmt));
-
-        if ($result) {
+    
+        $result = mysqli_stmt_get_result($stmt);
+    
+        if (mysqli_num_rows($result) > 0) {
             // Login successful
-            $_SESSION['username'] = $user;
+            $row = mysqli_fetch_assoc($result);
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['password'] = $row['password'];
+            $_SESSION['email'] = $row['email'];
+            $_SESSION['firstname'] = $row['firstname'];
+            $_SESSION['lastname'] = $row['lastname'];
+    
             header("Location: home.php");
         } else {
             // Login failed
             echo "Invalid username or password";
         }
-
+    
         // Close connection
         mysqli_close($conn);
     }
+    
 ?>
 
 <html lang="en">

@@ -9,81 +9,89 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../assets/css/editpro.css">
+        <link rel="stylesheet" href="../assets/css/editProfileeee.css">
         <title>Document</title>
     </head>
     <body>
-        <nav>
-            <a href="./home.php">Home</a>
-            <a href="./post.php">Create Post</a>
-            <a href="./editProfile.php">Edit Profile</a>
-            <a href="./logout.php">Logout</a>
-        </nav>
-          
-        
-        <div class="form-container">
-  <h2>Account Info</h2>
-  
-  <form id="form-one" action="submit-one.php" method="post">
-    <div class="section-container one">
+    <!DOCTYPE html>
+<html>
 
-      <div class="form-group one">
-        <label for="firstname">First Name</label>
-        <input type="text" id="firstname" name="firstname" placeholder="Enter your first name" value="Jon">
-      </div>
+<body>
+  <nav>
+  <a href="./home.php">Home</a>
+  <a href="./post.php">Create Post</a>
+  <a href="./editProfile.php">Edit Profile</a>
+  <a href="./logout.php">Logout</a>
+  </nav>
+	<h1>Edit Profile</h1>
 
-      <div class="form-group one">
-        <label for="lastname">Last Name</label>
-        <input type="text" id="lastname" name="lastname" placeholder="Enter your last name" value="Doe">
-      </div>
+	<div class="tab">
+		<button class="tablinks" onclick="openTab(event, 'personal_info')">Personal Info</button>
+		<button class="tablinks" onclick="openTab(event, 'change_password')">Change Password</button>
+		<button class="tablinks" onclick="openTab(event, 'change_profile_picture')">Change Profile Picture</button>
+	</div>
+	<form action="" method="post" enctype="multipart/form-data">
+		<div id="personal_info" class="tabcontent">
+			<fieldset>
+				
+				<label for="first_name">First Name:</label>
+				<input type="text" id="first_name" name="first_name" value="<?php echo $_SESSION['firstname'] ?>" required><br><br>
+				<label for="last_name">Last Name:</label>
+				<input type="text" id="last_name" name="last_name" value="<?php echo $_SESSION['lastname'] ?>" required><br><br>
+				<label for="username">Username:</label>
+				<input type="text" id="username" name="username" value="<?php echo $_SESSION['username'] ?>" required><br><br>
+				<label for="email">Email:</label>
+				<input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?>" required><br><br>
+			</fieldset>
+		</div>
+		<div id="change_password" class="tabcontent">
+			<fieldset>
+				
+				<label for="current_password">Current Password:</label>
+				<input type="password" id="current_password" name="current_password" required><br><br>
+				<label for="new_password">New Password:</label>
+				<input type="password" id="new_password" name="new_password" required><br><br>
+				<label for="confirm_password">Confirm Password:</label>
+				<input type="password" id="confirm_password" name="confirm_password" required><br><br>
+			</fieldset>
+		</div>
+		<div id="change_profile_picture" class="tabcontent">
+			<fieldset>
+				
+				<label for="profile_picture">Choose Picture:</label>
+				<input type="file" id="profile_picture" name="profile_picture">
+        <input type="submit" value="Upload">
+			</fieldset>
+		</div>
+    <input type="submit" value="Save changes">
+	</form>
 
-      <div class="form-group one">
-        <label for="email">Email</label>
-        <input type="text" id="email" name="email" placeholder="Enter your email" value="admin@site.net">
-      </div>
-    
-      <button type="button" onclick="showSection('two')">Reset Password</button>
-      <input type="submit" value="Save Changes">
-    </div>
-  </form>
+	<script>
+		function openTab(evt, tabName) {
+			// Declare all variables
+			let i, tabcontent, tablinks;
 
-  <form id="form-two" action="submit-two.php" method="post">
-    <div class="section-container two" style="display: none">
-      <div class="form-group two">
-        <label for="oldpassword">Old Password</label>
-        <input type="password" id="oldpassword" name="oldpassword" placeholder="Enter your old password">
-      </div>
+			// Get all elements with class="tabcontent" and hide them
+			tabcontent = document.getElementsByClassName("tabcontent");
+			for (i = 0; i < tabcontent.length; i++) {
+				tabcontent[i].style.display = "none";
+			}
 
-      <div class="form-group two">
-        <label for="newpassword">New Password</label>
-        <input type="password" id="newpassword" name="newpassword" placeholder="Enter your new password">
-      </div>
+			// Get all elements with class="tablinks" and remove the class "active"
+			tablinks = document.getElementsByClassName("tablinks");
+			for (i = 0; i < tablinks.length; i++) {
+				tablinks[i].className = tablinks[i].className.replace(" active", "");
+			}
 
-      <div class="form-group two">
-        <label for="confirmpassword">Confirm New Password</label>
-        <input type="password" id="confirmpassword" name="confirmpassword" placeholder="Confirm your new password">
-      </div>
+			// Show the current tab, and add an "active" class to the button that opened the tab
+			document.getElementById(tabName).style.display = "block";
+			evt.currentTarget.className += " active";
+		}
+    openTab(event, 'personal_info')
+	</script>
+  </body>
+  </html>
 
-      <button type="button" onclick="showSection('one')">Cancel</button>
-      <input type="submit" value="Save Changes">
-    </div>
-  </form>
-</div>
-
-<script>
-  function showSection(section) {
-    if (section === 'one') {
-      document.querySelector('#form-one .section-container.one').style.display = 'block';
-      document.querySelector('#form-two .section-container.two').style.display = 'none';
-    } else {
-      document.querySelector('#form-one .section-container.one').style.display = 'none';
-      document.querySelector('#form-two .section-container.two').style.display = 'block';
-    }
-  }
-</script>
-
-    </body>
-    </html>
 <?php else:?>
     <h1>no access</h1>
     <a href="./logout.php">Back</a>
