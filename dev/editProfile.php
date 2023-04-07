@@ -1,6 +1,6 @@
 <?php 
     session_start();
-
+	$msg = "";
     if(isset($_SESSION['username'])):?>
 
             
@@ -9,7 +9,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../assets/css/editProfile.css">
+        <link rel="stylesheet" href="../assets/css/editProfilee.css">
         <title>Document</title>
     </head>
     <body>
@@ -29,14 +29,13 @@
 
 
 	<div class="tab">
-		<button class="tablinks" onclick="openTab(event, 'personal_info')">Personal Info</button>
-		<button class="tablinks" onclick="openTab(event, 'change_password')">Change Password</button>
-		<button class="tablinks" onclick="openTab(event, 'change_profile_picture')">Change Profile Picture</button>
+		<button class="tablinks" onclick="selectTab('personal_info')">Personal Info</button>
+		<button class="tablinks" onclick="selectTab('change_password')">Change Password</button>
+		<button class="tablinks" onclick="selectTab('change_profile_picture')">Change Profile Picture</button>
 	</div>
 
-	<form action="" method="post">
-		<div id="personal_info" class="tabcontent">
-			<fieldset>
+	<form action="" method="post" id="personal_info">
+		<div id="personal_info" >
 				<label for="first_name">First Name:</label>
 				<input type="text" id="first_name" name="first_name" value="<?php echo $_SESSION['firstname'] ?>" required><br><br>
 				<label for="last_name">Last Name:</label>
@@ -45,82 +44,84 @@
 				<input type="text" id="username" name="username" value="<?php echo $_SESSION['username'] ?>" required><br><br>
 				<label for="email">Email:</label>
 				<input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?>" required><br><br>
-			</fieldset>
+				<p style="color:green;"><?php echo $msg?></p>
 			<input type="submit" value="Save changes"> 
 		</div>
 	</form>
 
-	<form action="" method="post">
-		<div id="change_password" class="tabcontent">
-			<fieldset>
+	<form action="" method="post" id="change_password">
+		<div id="change_password" >
+			
 				<label for="current_password">Current Password:</label>
 				<input type="password" id="current_password" name="current_password" required><br><br>
 				<label for="new_password">New Password:</label>
 				<input type="password" id="new_password" name="new_password" required><br><br>
 				<label for="confirm_password">Confirm Password:</label>
 				<input type="password" id="confirm_password" name="confirm_password" required><br><br>
-			</fieldset>
+			
 			<input type="submit" value="Save changes"> 
 		</div>
 	</form>
 
-	<form action="" method="post">
-		<div id="change_profile_picture" class="tabcontent">
-			<fieldset>
-				<label for="profile_picture">Choose Picture:</label>
-				<input type="file" id="profile_picture" name="profile_picture">
-			</fieldset>
-			<input type="submit" value="Upload">
+	<form action="" method="post" id="change_profile_picture">
+		<div id="change_profile_picture" >
+		Select image to upload:
+		<input type="file" name="fileToUpload" id="fileToUpload">
+		<input type="submit" value="Upload Image" name="submit">
 		</div>
 	</form>
 	<script>
-		function openTab(evt, tabName) {
-			// Declare all variables
-			let i, tabcontent, tablinks;
+		
+		function selectTab(tabname){
+			switch (tabname) {
+				case "change_password":
+					document.getElementById('change_password').style.display = "block";
+					document.getElementById('change_profile_picture').style.display = "none";
+					document.getElementById('personal_info').style.display = "none";
+					document.cookie = "tabname=change_password"
+				break;
 
-			// Get all elements with class="tabcontent" and hide them
-			tabcontent = document.getElementsByClassName("tabcontent");
-			for (i = 0; i < tabcontent.length; i++) {
-				tabcontent[i].style.display = "none";
+				case "change_profile_picture":
+					document.getElementById('change_profile_picture').style.display = "block";
+					document.getElementById('change_password').style.display = "none"
+					document.getElementById('personal_info').style.display = "none"
+					document.cookie = "tabname=change_profile_picture"
+				break;
+
+				case "personal_info":
+					document.getElementById('personal_info').style.display = "block";
+					document.getElementById('change_profile_picture').style.display = "none"
+					document.getElementById('change_password').style.display = "none";
+					document.cookie = "tabname=personal_info"
+				break;
+				
+				
 			}
-
-			// Get all elements with class="tablinks" and remove the class "active"
-			tablinks = document.getElementsByClassName("tablinks");
-			for (i = 0; i < tablinks.length; i++) {
-				tablinks[i].className = tablinks[i].className.replace(" active", "");
-			}
-
-			// Show the current tab, and add an "active" class to the button that opened the tab
-			document.getElementById(tabName).style.display = "block";
-			evt.currentTarget.className += " active";
-			document.cookie = "tabName=" + tabName;
+			
 		}
-
-		openTab(event, 'personal_info');
+		document.cookie = "tabname=personal_info"
+		selectTab('personal_info')
 	</script>
 	
 	<?php
 		require "./config.php";
-
-
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
-		$firstname = $_POST['first_name'];
-		$lastname = $_POST['last_name'];
-		$username = $_POST['username'];
-		$email = $_POST['email'];
+		$msg = "sds";
 
-		$oldPass = $_POST['current_password'];
-		$newPass = $_POST['new_password'];
-		$confirmPass = $_POST['confirm_password'];
-
-		$tabname = $_COOKIE["tabName"];
-		$user_id = $_SESSION['id'];
+		$tabname = $_COOKIE["tabname"];
+		$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 		if($tabname == "personal_info"){
+			$firstname = $_POST['first_name'];
+			$lastname = $_POST['last_name'];
+			$username = $_POST['username'];
+			$email = $_POST['email'];
+
 			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email'])){
 				$username_lowercase = strtolower($username);
-				$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+				
 				if($_POST['username'] != $_SESSION['username']){
 					$result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
+					$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 					if ($result->num_rows == 0) {
 						$send = "UPDATE users SET username='$username', email='$email', firstname='$firstname', lastname='$lastname' WHERE id=$user_id";
 						
@@ -129,21 +130,22 @@
 							$_SESSION['email'] = $_POST['email'];
 							$_SESSION['firstname'] = $_POST['first_name'];
 							$_SESSION['lastname'] = $_POST['last_name'];
-							echo "saved changes!";
+							$msg = "saved changes!";
 						} else {
 							echo "Error: " . $conn->error;
 						}
 		
 					} else {
-						echo "Username already in use!";
+						$msg = "Username already in use!";
 					}
 				}else{
+					$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 					$send = "UPDATE users SET firstname='$firstname', lastname='$lastname', email='$email' WHERE id='$user_id'";
 					if ($conn->query($send) === true) {
 						$_SESSION['email'] = $_POST['email'];
 						$_SESSION['firstname'] = $_POST['first_name'];
 						$_SESSION['lastname'] = $_POST['last_name'];
-						echo "saved changes!";
+						$msg = "saved changes!";
 					} else {
 						echo "Error: " . $conn->error;
 					}
@@ -151,16 +153,54 @@
 				
 	
 			}else{
-				echo "fill in all fields";
+				$msg =  "fill in all fields";
 			}
 		}elseif($tabname == "change_password"){
+			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
 			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
-				//reset password system here
+				$oldPass = $_POST['current_password'];
+				$userDbPass = $_SESSION['password'];
+				$newPass = $_POST['new_password'];
+				$confirmPass = $_POST['confirm_password'];
+				$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+
+				//Kollar att det gammla lösenordet inte är samma som det nya.
+				if($confirmPass == $newPass){
+					if($oldPass !== $userDbPass){
+						$send = "UPDATE users SET password='$newPass' WHERE id=$user_id";
+						if ($conn->query($send) === true) {
+							echo "The password was successfully changed!";	
+						}else{
+							echo "Error: " . $conn->error;
+						}
+					}else{
+						echo "incorrect password";
+						
+					}
+					
+				}else{
+					echo "The passwords do not match!";
+				}
 			}else{
 				echo "fill in all fields";
 			}
+
 		}elseif($tabname == "profile_picture"){
-			//profile picture sysytem here
+			$target_dir = "../uploads/";
+			$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+			$uploadOk = 1;
+			$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+			// Check if image file is a actual image or fake image
+			if(isset($_POST["submit"])) {
+			$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
+			if($check !== false) {
+				echo "File is an image - " . $check["mime"] . ".";
+				$uploadOk = 1;
+			} else {
+				echo "File is not an image.";
+				$uploadOk = 0;
+			}
+			}
 		}
 
 

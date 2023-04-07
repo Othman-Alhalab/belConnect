@@ -4,7 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Account BelConnect</title>
-    <link rel="stylesheet" href="../assets/css/registerrrrr.css">
+    <link rel="stylesheet" href="../assets/css/register.css">
  
 </head>
 <body>
@@ -93,7 +93,7 @@
 <?php
 require "metoder.php";
 require "config.php";
-
+session_start();
 
 if (isset($_POST["username"]) && isset($_POST["password"])) {
     $user = $_POST["username"];
@@ -124,7 +124,22 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
                 $send = "INSERT INTO users (username, password, email, firstname, lastname) VALUES ('$user', '$pass', '$email', '$firstname', '$lastname')";
                 try {
                     if ($conn->query($send) === true) {
-                        header("Location: login.php");
+                        $stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE username = ?");
+    
+                        mysqli_stmt_bind_param($stmt, "s", $_POST["username"]);
+                        
+                        mysqli_stmt_execute($stmt);
+                        
+                        $result = mysqli_stmt_get_result($stmt);
+    
+                        $_SESSION['username'] = $_POST["username"];
+                        $_SESSION['password'] = $_POST["password"];
+                        $_SESSION['email'] = $_POST['email'];
+                        $_SESSION['id'] = $row['id'];
+                        $_SESSION['firstname'] = $_POST['firstname'];
+                        $_SESSION['lastname'] = $_POST['lastname'];
+                
+                        header("Location: home.php");
                     } else {
                         echo "Error: " . $conn->error;
                     }

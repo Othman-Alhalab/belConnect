@@ -1,9 +1,10 @@
 <?php
+    session_start();
     require 'metoder.php';
     require "config.php";
 
-    session_start();
-
+    
+    $errormsg = "";
     if(isset($_POST['username']) && isset($_POST['password'])) {
         $user = $_POST['username'];
         $pass = $_POST['password'];
@@ -35,7 +36,8 @@
             header("Location: home.php");
         } else {
             // Login failed
-            echo "Invalid username or password";
+            $errormsg = "Invalid username or password";
+
         }
     
         // Close connection
@@ -59,6 +61,7 @@
 		<input type="text" id="username" name="username"><br><br>
 		<label for="password">Password:</label>
 		<input type="password" id="password" name="password"><br><br>
+        <p style="color:red;"><?php echo $errormsg?></p>
 		<p><a href="./register.php">Register Account</a></p>
 		<input type="submit" value="Login">
 	</form>
