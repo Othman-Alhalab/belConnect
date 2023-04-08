@@ -1,3 +1,13 @@
+
+<?php
+    //dessa gör det möjligt för mig att spara variabler efter att sidan "refrashar" svengelska
+    $input_Firstname = isset($_POST['firstname']) ? $_POST['firstname'] : '';
+    $input_Lastname = isset($_POST['lastname']) ? $_POST['lastname'] : '';
+    $input_Username = isset($_POST['username']) ? $_POST['username'] : '';
+    $input_Email = isset($_POST['email']) ? $_POST['email'] : '';
+
+?>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,16 +23,16 @@
     <h2 id="regid">Register</h2>
         <div class="slide">
             <label for="firstname">* First Name:</label>
-            <input type="text" id="firstname" name="firstname" required><br><br>
+            <input type="text" id="firstname" name="firstname" value="<?php echo $input_Firstname; ?>" required><br><br>
 
             <label for="lastname">* Last Name:</label>
-            <input type="text" id="lastname" name="lastname" required><br><br>
+            <input type="text" id="lastname" name="lastname" value="<?php echo $input_Lastname; ?>" required><br><br>
 
             <label for="username">* Username:</label>
-            <input type="text" id="username" name="username" required><br><br>
+            <input type="text" id="username" name="username" value="<?php echo $input_Username; ?>" required><br><br>
 
             <label for="email">* Email:</label>
-            <input type="email" id="email" name="email" required><br><br>
+            <input type="email" id="email" name="email" value="<?php echo $input_Email; ?>" required><br><br>
 
             <button type="button" class="next">Next</button>
         </div>
@@ -96,6 +106,7 @@ require "config.php";
 session_start();
 
 if (isset($_POST["username"]) && isset($_POST["password"])) {
+    
     $user = $_POST["username"];
     $pass = $_POST["password"];
     $email = $_POST['email'];
@@ -139,7 +150,7 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
                         $_SESSION['firstname'] = $_POST['firstname'];
                         $_SESSION['lastname'] = $_POST['lastname'];
                 
-                        header("Location: home.php");
+                        header("Location: login.php");
                     } else {
                         echo "Error: " . $conn->error;
                     }

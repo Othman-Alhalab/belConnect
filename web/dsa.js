@@ -28,5 +28,29 @@ function selectTab(tabname){
     }
 }
 
-//   visibility: visible;
-//  visibility: hidden;
+
+let twoFA = "active" // cookie
+let mode = false; //cookie?
+
+function checkFA(cookie){
+    switch (cookie) {
+        case "active":
+            if(!mode){
+                document.getElementById('container').style.display = "none";
+                document.getElementById('confirm').style.display = "block";
+            }else{
+                document.getElementById('container').style.display = "block";
+                document.getElementById('confirm').style.display = "none";
+            }
+            break;
+    
+        case "disabled":
+            document.getElementById('container').style.display = "block";
+            document.getElementById('confirm').style.display = "none";
+        break;
+    }
+}
+
+
+//  confirm
+//  container

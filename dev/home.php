@@ -8,12 +8,18 @@
         <?php 
         session_start();
         if(isset($_SESSION['username'])) :?>
-            <nav>
+        <nav>
+            <div class="navbar-left">
                 <a href="./home.php">Home</a>
                 <a href="./post.php">Create Post</a>
                 <a href="./editProfile.php">Edit Profile</a>
+            </div>
+            <div class="navbar-right">
                 <a href="./logout.php">Logout</a>
-            </nav>
+            </div>
+        </nav>
+
+
 
             <?php
                 $tags = array("other", "food", "art", "programming", "music");

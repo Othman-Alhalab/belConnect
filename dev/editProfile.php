@@ -1,6 +1,5 @@
 <?php 
     session_start();
-	$msg = "";
     if(isset($_SESSION['username'])):?>
 
             
@@ -9,7 +8,8 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../assets/css/editProfilee.css">
+        <link rel="stylesheet" href="../assets/css/editProfile.css">
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
         <title>Document</title>
     </head>
     <body>
@@ -17,12 +17,16 @@
 <html>
 
 <body>
-  <nav>
-  <a href="./home.php">Home</a>
-  <a href="./post.php">Create Post</a>
-  <a href="./editProfile.php">Edit Profile</a>
-  <a href="./logout.php">Logout</a>
-  </nav>
+		<nav>
+            <div class="navbar-left">
+                <a href="./home.php">Home</a>
+                <a href="./post.php">Create Post</a>
+                <a href="./editProfile.php">Edit Profile</a>
+            </div>
+            <div class="navbar-right">
+                <a href="./logout.php">Logout</a>
+            </div>
+        </nav>
 	
 
   <h1>Edit Profile</h1>
@@ -32,6 +36,7 @@
 		<button class="tablinks" onclick="selectTab('personal_info')">Personal Info</button>
 		<button class="tablinks" onclick="selectTab('change_password')">Change Password</button>
 		<button class="tablinks" onclick="selectTab('change_profile_picture')">Change Profile Picture</button>
+		<button class="tablinks" onclick="selectTab('security_and_privacy')">Security and Privacy</button>
 	</div>
 
 	<form action="" method="post" id="personal_info">
@@ -44,8 +49,24 @@
 				<input type="text" id="username" name="username" value="<?php echo $_SESSION['username'] ?>" required><br><br>
 				<label for="email">Email:</label>
 				<input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?>" required><br><br>
-				<p style="color:green;"><?php echo $msg?></p>
+				
+				
+			
 			<input type="submit" value="Save changes"> 
+		</div>
+	
+	</form>
+
+	<form action="" method="post" id="security_and_privacy">
+		<div id="security_and_privacy" >
+			
+				<div class="form-check form-switch">
+				<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+				<label class="form-check-label" for="flexSwitchCheckDefault">2FA</label>
+				</div>
+			<br>
+			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
+			
 		</div>
 	</form>
 
@@ -78,6 +99,7 @@
 					document.getElementById('change_password').style.display = "block";
 					document.getElementById('change_profile_picture').style.display = "none";
 					document.getElementById('personal_info').style.display = "none";
+					document.getElementById('security_and_privacy').style.display = "none";
 					document.cookie = "tabname=change_password"
 				break;
 
@@ -85,6 +107,7 @@
 					document.getElementById('change_profile_picture').style.display = "block";
 					document.getElementById('change_password').style.display = "none"
 					document.getElementById('personal_info').style.display = "none"
+					document.getElementById('security_and_privacy').style.display = "none";
 					document.cookie = "tabname=change_profile_picture"
 				break;
 
@@ -92,21 +115,32 @@
 					document.getElementById('personal_info').style.display = "block";
 					document.getElementById('change_profile_picture').style.display = "none"
 					document.getElementById('change_password').style.display = "none";
+					document.getElementById('security_and_privacy').style.display = "none";
 					document.cookie = "tabname=personal_info"
 				break;
+
+				case "security_and_privacy":
+					document.getElementById('security_and_privacy').style.display = "block";
+					document.getElementById('personal_info').style.display = "none";
+					document.getElementById('change_profile_picture').style.display = "none"
+					document.getElementById('change_password').style.display = "none";
+					document.cookie = "tabname=security_and_privacy"
+					break;
 				
 				
 			}
 			
 		}
 		document.cookie = "tabname=personal_info"
+		const curr = document.cookie ? "personal_info" : "x"
 		selectTab('personal_info')
 	</script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 	
 	<?php
 		require "./config.php";
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
-		$msg = "sds";
+		//$msg = "sds";
 
 		$tabname = $_COOKIE["tabname"];
 		$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
@@ -121,7 +155,7 @@
 				
 				if($_POST['username'] != $_SESSION['username']){
 					$result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
-					$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+					$user_id = $_SESSION['id'];
 					if ($result->num_rows == 0) {
 						$send = "UPDATE users SET username='$username', email='$email', firstname='$firstname', lastname='$lastname' WHERE id=$user_id";
 						
@@ -130,22 +164,25 @@
 							$_SESSION['email'] = $_POST['email'];
 							$_SESSION['firstname'] = $_POST['first_name'];
 							$_SESSION['lastname'] = $_POST['last_name'];
-							$msg = "saved changes!";
+							//$msg = "saved changes!";
+							echo "saved changes!";
 						} else {
 							echo "Error: " . $conn->error;
 						}
 		
 					} else {
-						$msg = "Username already in use!";
+						//$msg = "Username already in use!";
+						echo "Username already in use!";
 					}
 				}else{
-					$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+					$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 					$send = "UPDATE users SET firstname='$firstname', lastname='$lastname', email='$email' WHERE id='$user_id'";
 					if ($conn->query($send) === true) {
 						$_SESSION['email'] = $_POST['email'];
 						$_SESSION['firstname'] = $_POST['first_name'];
 						$_SESSION['lastname'] = $_POST['last_name'];
-						$msg = "saved changes!";
+						//$msg = "saved changes!";
+						echo "saved changes!";
 					} else {
 						echo "Error: " . $conn->error;
 					}
@@ -153,7 +190,8 @@
 				
 	
 			}else{
-				$msg =  "fill in all fields";
+				//$msg =  "fill in all fields";
+				echo "fill in all fields";
 			}
 		}elseif($tabname == "change_password"){
 			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
@@ -162,7 +200,7 @@
 				$userDbPass = $_SESSION['password'];
 				$newPass = $_POST['new_password'];
 				$confirmPass = $_POST['confirm_password'];
-				$user_id = isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+				$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 
 				//Kollar att det gammla lösenordet inte är samma som det nya.
 				if($confirmPass == $newPass){

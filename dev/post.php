@@ -3,66 +3,86 @@
     session_start(); // start the session
 
     if(isset($_SESSION['username'])) :?>
+
+    <?php 
+         $Input_postName = isset($_POST['post-name']) ? $_POST['post-name'] : "" ;
+         $Input_postdata = isset($_POST['post-data']) ? $_POST['post-data'] : "" ;
+    ?>
         <nav>
-        <a href="./home.php">Home</a>
-        <a href="./post.php">Create Post</a>
-        <a href="./editProfile.php">Edit Profile</a>
-        <a href="./logout.php">Logout</a>
+            <div class="navbar-left">
+                <a href="./home.php">Home</a>
+                <a href="./post.php">Create Post</a>
+                <a href="./editProfile.php">Edit Profile</a>
+            </div>
+            <div class="navbar-right">
+                <a href="./logout.php">Logout</a>
+            </div>
         </nav>
-    <link rel="stylesheet" href="../assets/css/postt.css">
+
+    <link rel="stylesheet" href="../assets/css/post.css">
     <h1>Create Post</h1>
-    <form method="post" action="">
-    <label for="post-name">Post Name:</label>
-    <input type="text" name="post-name" id="post-name">
+    <form method="post" action="" id="pub">
+        <label for="post-name">Post Name:</label>
+        <input type="text" name="post-name" id="post-name" value="<?php echo $Input_postName;?>">
 
-    <label for="post-data">Content:</label>
-    <textarea name="post-data" id="post-data"></textarea>
-    
-    <div class="checkbox-container">
-        <input type="checkbox" name="anonymous" id="anonymous">
-    <span id="anonymous-label">Anonymous Post</span>
-    
-    </div>
+        <label for="post-data">Content:</label>
+        <textarea name="post-data" id="post-data"><?php echo $Input_postdata;?></textarea>
+        
+        <div class="checkbox-container">
+            <input type="checkbox" name="anonymous" id="anonymous">
+        <span id="anonymous-label">Anonymous Post</span>
+        
+        </div>
 
-    <br>
-    <br>
-    <label>Tags:</label>
-    <div class="checkbox-container">
-        <input type="checkbox" name="tags[]" value="programming" id="programming-tag">
-        <label for="programming-tag">Programming</label>
+        <br>
+        <br>
+        <label>Tags:</label>
+        <div class="checkbox-container">
+            <input type="checkbox" name="tags[]" value="programming" id="programming-tag">
+            <label for="programming-tag">Programming</label>
 
-        <input type="checkbox" name="tags[]" value="food" id="food-tag">
-        <label for="food-tag">Food</label>
+            <input type="checkbox" name="tags[]" value="food" id="food-tag">
+            <label for="food-tag">Food</label>
 
-        <input type="checkbox" name="tags[]" value="art" id="art-tag">
-        <label for="art-tag">Art</label>
+            <input type="checkbox" name="tags[]" value="art" id="art-tag">
+            <label for="art-tag">Art</label>
 
-        <input type="checkbox" name="tags[]" value="music" id="music-tag">
-        <label for="music-tag">Music</label>
+            <input type="checkbox" name="tags[]" value="music" id="music-tag">
+            <label for="music-tag">Music</label>
 
-        <input type="checkbox" name="tags[]" value="other" id="other-tag">
-        <label for="other-tag">Other</label>
-    </div>
+            <input type="checkbox" name="tags[]" value="other" id="other-tag">
+            <label for="other-tag">Other</label>
+        </div>
 
-    
+        
 
-    <input type="submit" value="Submit">
-    
-    <?php echo "USER: " . $_SESSION['username']?>
+        <input type="submit" value="Submit">
+        
+        <?php echo "USER: " . $_SESSION['username']?>
     </form>
-            <h1>My posts</h1>
+    
+    <h1>My posts</h1>
 
 
 <?php
+    require "config.php";
     //Till att skriva ut "Mina" posts (inloggade användarens posts)
     if(isset($_SESSION['username'])) {
         
         $usr = $_SESSION['username'];
-        $servername = "localhost";
-        $username = "root";
-        $password = "";
-        $dbname = "BelConnectDB";
-        $conn = mysqli_connect($servername, $username, $password, $dbname);
+        $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+
+        //Används till att radera inlägg genom att hitta idt på inlägget och användarnamnet på användaren
+        if(isset($_POST['delete_post'])) {
+            $post_id = $_POST['post_id'];
+            $sql = "DELETE FROM posts WHERE id = '$post_id' AND username = '$usr'";
+            $result = $conn->query($sql);
+            if($result) {
+                echo '<div class="success-message">Post deleted successfully.</div>';
+            } else {
+                echo '<div class="error-message">Error deleting post.</div>';
+            }
+        }
 
         $sql = "SELECT * FROM posts WHERE username = '$usr' ORDER BY created_at DESC";
         $result = $conn->query($sql);
@@ -81,11 +101,18 @@
             }
             echo '</div>';
 
+            echo '<form method="POST">';
+            echo '<input type="hidden" name="post_id" value="' . $row['id'] . '">';
+            echo '<button type="submit" name="delete_post">Delete Post</button>';
+            echo '</form>';
+
             echo '</div>';
+            
         }
         
 
     }
+
 ?>
 
 <?php else : ?>
