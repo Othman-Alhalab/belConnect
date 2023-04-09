@@ -101,7 +101,7 @@
             }
             echo '</div>';
 
-            echo '<form method="POST">';
+            echo '<form method="POST" id="delG">';
             echo '<input type="hidden" name="post_id" value="' . $row['id'] . '">';
             echo '<button type="submit" name="delete_post">Delete Post</button>';
             echo '</form>';
@@ -123,8 +123,8 @@
 
 <?php
     //Till att lägga upp inlägg
+
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    
        if(isset($_POST['post-name']) && isset($_POST['tags'])){
          if(!empty($_POST['post-data'] && !empty($_POST['post-name']))){
             $servername = "localhost";
@@ -146,10 +146,8 @@
             header("Location: post.php");
          }else{
             echo "<script>alert('Please fill out all fileds.')</script>";
-         }
+        }
             
-       }else{
-        echo "<script>alert('Fill out all fileds and select a tag to create a post.')</script>";
        }
     
     }

@@ -59,10 +59,9 @@
 
 	<form action="" method="post" id="security_and_privacy">
 		<div id="security_and_privacy" >
-			
 				<div class="form-check form-switch">
-				<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-				<label class="form-check-label" for="flexSwitchCheckDefault">2FA</label>
+					<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" onclick="window.location='?2fa=true'">
+					<label class="form-check-label" for="flexSwitchCheckDefault">2FA</label>
 				</div>
 			<br>
 			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
@@ -84,14 +83,30 @@
 		</div>
 	</form>
 
-	<form action="" method="post" id="change_profile_picture">
-		<div id="change_profile_picture" >
-		Select image to upload:
-		<input type="file" name="fileToUpload" id="fileToUpload">
-		<input type="submit" value="Upload Image" name="submit">
+	<form action="" method="post" enctype="multipart/form-data" id="change_profile_picture">
+		<div id="change_profile_picture">
+			Select image to upload: <img src="../assets/CommingSen.png" alt="" srcset="">
+			<input type="file" name="fileToUpload" id="fileToUpload">
+			<input type="submit" value="Upload Image" name="submit">
 		</div>
 	</form>
+
 	<script>
+		//Kollar om det finns någon cookie (allmänt) vilket det alltid gör. jag säger då att om det finns en cookie då ta cookien
+		// "tabname" och ändra den lite så att det blir enklare att hantera den om det inte finns något (det funkade ej att köra replace)
+		//då sätt "tabname_in" till "personal_info"
+		//regex från stackoverflow
+		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
+		
+		function check_2fa_btn(){
+			if(document.getElementById("flexSwitchCheckDefault").checked){
+				document.cookie = "TwoFA=true";
+			}else{
+				document.cookie = "TwoFA=false";
+			}
+		}
+
+		
 		
 		function selectTab(tabname){
 			switch (tabname) {
@@ -127,18 +142,40 @@
 					document.cookie = "tabname=security_and_privacy"
 					break;
 				
-				
+				default:
+					document.getElementById('personal_info').style.display = "block";
+					document.getElementById('change_profile_picture').style.display = "none"
+					document.getElementById('change_password').style.display = "none";
+					document.getElementById('security_and_privacy').style.display = "none";
+					document.cookie = "tabname=personal_info"
+					break;
 			}
 			
 		}
+		
+		selectTab(tabname_in)
+		/*
 		document.cookie = "tabname=personal_info"
 		const curr = document.cookie ? "personal_info" : "x"
+		
 		selectTab('personal_info')
+		*/
 	</script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 	
 	<?php
 		require "./config.php";
+
+		
+		if(isset($_COOKIE["TwoFA"])) {
+			if($_COOKIE["TwoFA"] == "true"){
+				
+			}elseif($_COOKIE["TwoFA"] == "false"){
+
+			}
+		}
+		
+	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		//$msg = "sds";
 
@@ -224,21 +261,17 @@
 			}
 
 		}elseif($tabname == "profile_picture"){
-			$target_dir = "../uploads/";
-			$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-			$uploadOk = 1;
-			$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-			// Check if image file is a actual image or fake image
-			if(isset($_POST["submit"])) {
-			$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-			if($check !== false) {
-				echo "File is an image - " . $check["mime"] . ".";
-				$uploadOk = 1;
-			} else {
-				echo "File is not an image.";
-				$uploadOk = 0;
-			}
-			}
+		
+			//svär jag vene hur man gör den här skiten
+			
+				
+
+		}elseif($tabname == "security_and_privacy"){
+			$fa2 = $_POST['flexSwitchCheckDefault'];
+
+			
+				
+
 		}
 
 
