@@ -26,4 +26,10 @@
 
         return $row['id'];
     };
+
+    //en funktion till att göra session id's
+    function generate_session_id() {
+        $prefix = "SESSION_"; // Add a prefix to make the session ID more unique
+        return $prefix . uniqid();
+    }
 ?>
