@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="../assets/css/post.css">
     <h1>Create Post</h1>
     <form method="post" action="" id="pub">
-        <label for="post-name">Post Name:</label>
+        <label for="post-name">Title:</label>
         <input type="text" name="post-name" id="post-name" value="<?php echo $Input_postName;?>">
 
         <label for="post-data">Content:</label>

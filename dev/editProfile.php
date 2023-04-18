@@ -262,7 +262,26 @@
 
 		}elseif($tabname == "profile_picture"){
 		
-			//svär jag vene hur man gör den här skiten
+			$img_name = $_FILES['my_image']['name'];
+			$img_size = $_FILES['my_image']['size'];
+			$tmp_name = $_FILES['my_image']['tmp_name'];
+			$error = $_FILES['my_image']['error'];
+		
+			if ($error === 0) {
+				if ($img_size > 1250000) {
+					$em = "Sorry, your file is too large.";
+					
+				}else {
+					$img_data = file_get_contents($tmp_name);
+					$img_type = $_FILES['my_image']['type'];
+					// Insert into Database
+					$stmt = $conn->prepare("INSERT INTO users (image_data) VALUES (?)");
+					$stmt->bind_param("s", $img_data);
+					$stmt->execute();
+		
+					
+				}
+			}
 			
 				
 

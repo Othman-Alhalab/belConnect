@@ -74,6 +74,15 @@
                     echo '<div class="post-header">' . $row['post_name'] . '</div>';
                     echo '<div class="post-meta">By ' . $row['author'] . ' on ' . $row['created_at'] . '</div>';
                     echo '<div class="post-content">' . $row['post_data'] . '</div>';
+                    if(isset($row['image_data'])){
+                        $img_data = $row['image_data'];
+                        $img_type = $row['image_type'];
+                        $base64_image = base64_encode($img_data);
+                        $img_src = "data:$img_type;base64,$base64_image";
+                        echo '<img src="' . $img_src . '" width="80" height="80" style="float: right; margin-top: -70px;">';
+                    }else{
+                        echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
+                    }
 
                     // Display the tags for the post
                     $post_tags = explode(',', $row['tags']);

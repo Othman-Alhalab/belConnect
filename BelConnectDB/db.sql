@@ -10,7 +10,8 @@ CREATE TABLE users (
   password VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   firstname VARCHAR(255) NOT NULL,
-  lastname VARCHAR(255) NOT NULL
+  lastname VARCHAR(255) NOT NULL,
+  image_data LONGBLOB
 );
 
 CREATE TABLE sessions (
@@ -38,4 +39,3 @@ CREATE TABLE posts (
   tags VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
