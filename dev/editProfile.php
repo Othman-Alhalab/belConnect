@@ -57,18 +57,6 @@
 	
 	</form>
 
-	<form action="" method="post" id="security_and_privacy">
-		<div id="security_and_privacy" >
-				<div class="form-check form-switch">
-					<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" onclick="window.location='?2fa=true'">
-					<label class="form-check-label" for="flexSwitchCheckDefault">2FA</label>
-				</div>
-			<br>
-			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
-			
-		</div>
-	</form>
-
 	<form action="" method="post" id="change_password">
 		<div id="change_password" >
 			
@@ -85,10 +73,34 @@
 
 
 	<form action="" method="post" id="change_profile_picture" enctype = "multipart/form-data">
+		<!---
+		Måste fixa så att man kan se vilken bild man laddade upp
+		-->
 		<div id="change_profile_picture">
 			<input type = "file" name = "my_image">
 			<input type="submit" name="submit" value="Submit">
 
+		</div>
+	</form>
+
+	
+	<form action="" method="post" id="security_and_privacy">
+		<div id="security_and_privacy" >
+		<label for="question"></label>
+
+			<select id="question">
+			<option value="show">What is your favorite movie or TV show?</option>
+			<option value="born">In what city or town were you born?</option>
+			<option value="pet">What was the name of your first pet?</option>
+			</select>
+			<br>
+			<br>
+			<input type="text" name="answer" id="answer" placeholder="dog name efe">
+			<input type="submit" value="Set security question">
+			<br>
+			<br>
+			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
+			
 		</div>
 	</form>
 
@@ -98,16 +110,7 @@
 		//då sätt "tabname_in" till "personal_info"
 		//regex från stackoverflow
 		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
-		
-		function check_2fa_btn(){
-			if(document.getElementById("flexSwitchCheckDefault").checked){
-				document.cookie = "TwoFA=true";
-			}else{
-				document.cookie = "TwoFA=false";
-			}
-		}
 
-		
 		
 		function selectTab(tabname){
 			switch (tabname) {
@@ -168,13 +171,7 @@
 		require "./config.php";
 
 		
-		if(isset($_COOKIE["TwoFA"])) {
-			if($_COOKIE["TwoFA"] == "true"){
-				
-			}elseif($_COOKIE["TwoFA"] == "false"){
-
-			}
-		}
+		
 		
 	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -263,7 +260,6 @@
 
 		}elseif($tabname == "change_profile_picture"){
 			if(isset($_FILES['my_image'])){
-				
 				$img_name = $_FILES['my_image']['name'];
 				$img_size = $_FILES['my_image']['size'];
 				$tmp_name = $_FILES['my_image']['tmp_name'];
@@ -286,7 +282,13 @@
 		}elseif($tabname == "security_and_privacy"){
 			$fa2 = $_POST['flexSwitchCheckDefault'];
 
-			
+			if(isset($_COOKIE["TwoFA"])) {
+				if($_COOKIE["TwoFA"] == "true"){
+					
+				}elseif($_COOKIE["TwoFA"] == "false"){
+	
+				}
+			}
 				
 
 		}

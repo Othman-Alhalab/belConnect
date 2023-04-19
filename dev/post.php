@@ -138,10 +138,11 @@
             $postData = strip_tags($_POST['post-data']);
             $author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['username'];
             $tags = implode(',', $_POST['tags']);
+            $user_id = $_SESSION['id'];
             
-            $sql = "INSERT INTO posts (author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO posts (user_id, author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('sssss', $author ,$username, $postName, $postData, $tags);
+            $stmt->bind_param('isssss',$user_id, $author ,$username, $postName, $postData, $tags);
             $stmt->execute();
             header("Location: post.php");
          }else{
