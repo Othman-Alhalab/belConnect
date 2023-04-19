@@ -52,6 +52,7 @@
                 }
 
                 $sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC";
+                $profile_picture = "SELECT image_data, image_type from users";
                 $result = $conn->query($sql);
                 
                 echo '
@@ -74,6 +75,7 @@
                     echo '<div class="post-header">' . $row['post_name'] . '</div>';
                     echo '<div class="post-meta">By ' . $row['author'] . ' on ' . $row['created_at'] . '</div>';
                     echo '<div class="post-content">' . $row['post_data'] . '</div>';
+                    //echo $row;
                     if(isset($row['image_data'])){
                         $img_data = $row['image_data'];
                         $img_type = $row['image_type'];

@@ -83,11 +83,12 @@
 		</div>
 	</form>
 
-	<form action="" method="post" enctype="multipart/form-data" id="change_profile_picture">
+
+	<form action="" method="post" id="change_profile_picture" enctype = "multipart/form-data">
 		<div id="change_profile_picture">
-			Select image to upload: <img src="../assets/CommingSen.png" alt="" srcset="">
-			<input type="file" name="fileToUpload" id="fileToUpload">
-			<input type="submit" value="Upload Image" name="submit">
+			<input type = "file" name = "my_image">
+			<input type="submit" name="submit" value="Submit">
+
 		</div>
 	</form>
 
@@ -260,28 +261,25 @@
 				echo "fill in all fields";
 			}
 
-		}elseif($tabname == "profile_picture"){
-		
-			$img_name = $_FILES['my_image']['name'];
-			$img_size = $_FILES['my_image']['size'];
-			$tmp_name = $_FILES['my_image']['tmp_name'];
-			$error = $_FILES['my_image']['error'];
-		
-			if ($error === 0) {
-				if ($img_size > 1250000) {
-					$em = "Sorry, your file is too large.";
-					
-				}else {
+		}elseif($tabname == "change_profile_picture"){
+			if(isset($_FILES['my_image'])){
+				
+				$img_name = $_FILES['my_image']['name'];
+				$img_size = $_FILES['my_image']['size'];
+				$tmp_name = $_FILES['my_image']['tmp_name'];
+
 					$img_data = file_get_contents($tmp_name);
 					$img_type = $_FILES['my_image']['type'];
-					// Insert into Database
-					$stmt = $conn->prepare("INSERT INTO users (image_data) VALUES (?)");
-					$stmt->bind_param("s", $img_data);
+				
+					$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
+            		$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
 					$stmt->execute();
-		
-					
-				}
+					echo "Your profile picture has successfully been updated!";
+
+			}else{
+				echo "No image has been uploaded!";
 			}
+		
 			
 				
 
