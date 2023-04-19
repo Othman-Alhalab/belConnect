@@ -11,8 +11,11 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL,
   firstname VARCHAR(255) NOT NULL,
   lastname VARCHAR(255) NOT NULL,
+  image_type VARCHAR(255),
   image_data LONGBLOB
 );
+
+
 
 CREATE TABLE sessions (
     session_id INT PRIMARY KEY,
@@ -39,3 +42,10 @@ CREATE TABLE posts (
   tags VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+alter table users 
+ADD image_type VARCHAR(255);
+	
+alter table users 
+ADD image_data LONGBLOB;
