@@ -35,6 +35,7 @@ CREATE TABLE user_secret_questions (
 
 CREATE TABLE posts (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
   author VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   post_name VARCHAR(255) NOT NULL,
@@ -49,3 +50,6 @@ ADD image_type VARCHAR(255);
 	
 alter table users 
 ADD image_data LONGBLOB;
+
+alter table posts
+ADD user_id INT;
