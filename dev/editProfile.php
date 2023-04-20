@@ -85,7 +85,16 @@
 
 	
 	<form action="" method="post" id="security_and_privacy">
-		<div id="security_and_privacy" >
+		<p>2FA</p>
+		<label class="switch">
+			<input type="checkbox" id="tglSwitch">
+			<span class="slider round"></span>
+		</label>
+
+		<br>
+		<br>
+		<br>
+		<div id="myForm" style="display:none;">
 		<label for="question"></label>
 
 			<select id="question">
@@ -100,9 +109,22 @@
 			<br>
 			<br>
 			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
-			
 		</div>
 	</form>
+
+
+	<script>
+  var toggleSwitch = document.getElementById("tglSwitch");
+  var myForm = document.getElementById("myForm");
+
+  toggleSwitch.addEventListener("click", function() {
+    if (toggleSwitch.checked) {
+      myForm.style.display = "block";
+    } else {
+      myForm.style.display = "none";
+    }
+  });
+</script>
 
 	<script>
 		//Kollar om det finns någon cookie (allmänt) vilket det alltid gör. jag säger då att om det finns en cookie då ta cookien
@@ -111,6 +133,9 @@
 		//regex från stackoverflow
 		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
 
+		function switchFunction(mode){
+			
+		}
 		
 		function selectTab(tabname){
 			switch (tabname) {
@@ -165,7 +190,7 @@
 		selectTab('personal_info')
 		*/
 	</script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+	
 	
 	<?php
 		require "./config.php";

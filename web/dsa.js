@@ -29,6 +29,11 @@ function selectTab(tabname){
 }
 
 
+function switchFunction(mode){
+    if(document.getElementById("").checked)
+}
+
+
 let twoFA = "active" // cookie
 let mode = false; //cookie?
 
