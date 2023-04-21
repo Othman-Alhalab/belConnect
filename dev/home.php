@@ -102,9 +102,13 @@
                     echo '<div class="post-content">' . $row['post_data'] . '</div>';
                     
                     // Display the profile picture for the author
-                    if (isset($profile_pictures[$row['user_id']])) {
-                        $img_src = $profile_pictures[$row['user_id']];
-                        echo '<img src="' . $img_src . '" width="80" height="80" style="float: right; margin-top: -70px;">';
+                    if($row['author'] === "Anonymous"){
+                        echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
+                    }else{
+                        if (isset($profile_pictures[$row['user_id']])) {
+                            $img_src = $profile_pictures[$row['user_id']];
+                            echo '<img src="' . $img_src . '" width="80" height="80" style="float: right; margin-top: -70px;">';
+                        }
                     }
                     
                     //Visar vilka tags varje post har

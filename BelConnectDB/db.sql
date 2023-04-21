@@ -35,6 +35,7 @@ CREATE TABLE user_secret_questions (
 
 CREATE TABLE posts (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
   author VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   post_name VARCHAR(255) NOT NULL,
@@ -42,6 +43,7 @@ CREATE TABLE posts (
   tags VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 alter table users 
