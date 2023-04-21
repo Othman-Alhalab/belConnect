@@ -1,8 +1,144 @@
 <?php 
     session_start();
+	$error_pass = "";
+	$error_change_profile_picture = "";
+	$security_and_privacy = "";
+	$error_personal_info = "";
     if(isset($_SESSION['username'])):?>
 
             
+<?php
+		require "./config.php";
+
+		
+		
+		
+	
+	if($_SERVER['REQUEST_METHOD'] == 'POST'){
+		//$msg = "sds";
+
+		$tabname = $_COOKIE["tabname"];
+		$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+		if($tabname == "personal_info"){
+			$firstname = $_POST['first_name'];
+			$lastname = $_POST['last_name'];
+			$username = $_POST['username'];
+			$email = $_POST['email'];
+
+			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email'])){
+				$username_lowercase = strtolower($username);
+				
+				if($_POST['username'] != $_SESSION['username']){
+					$result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
+					$user_id = $_SESSION['id'];
+					if ($result->num_rows == 0) {
+						$send = "UPDATE users SET username='$username', email='$email', firstname='$firstname', lastname='$lastname' WHERE id=$user_id";
+						
+						if ($conn->query($send) === true) {
+							$_SESSION['username'] = $_POST['username'];
+							$_SESSION['email'] = $_POST['email'];
+							$_SESSION['firstname'] = $_POST['first_name'];
+							$_SESSION['lastname'] = $_POST['last_name'];
+							//$msg = "saved changes!";
+							$error_personal_info = "saved changes!";
+						} else {
+							$error_personal_info = "Error: " . $conn->error;
+						}
+		
+					} else {
+						//$msg = "Username already in use!";
+						$error_personal_info = "Username already in use!";
+					}
+				}else{
+					$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+					$send = "UPDATE users SET firstname='$firstname', lastname='$lastname', email='$email' WHERE id='$user_id'";
+					if ($conn->query($send) === true) {
+						$_SESSION['email'] = $_POST['email'];
+						$_SESSION['firstname'] = $_POST['first_name'];
+						$_SESSION['lastname'] = $_POST['last_name'];
+						//$msg = "saved changes!";
+						$error_personal_info = "saved changes!";
+					} else {
+						$error_personal_info = "Error: " . $conn->error;
+					}
+				}
+				
+	
+			}else{
+				//$msg =  "fill in all fields";
+				$error_personal_info = "fill in all fields";
+			}
+		}elseif($tabname == "change_password"){
+			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
+			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
+				$oldPass = $_POST['current_password'];
+				$userDbPass = $_SESSION['password'];
+				$newPass = $_POST['new_password'];
+				$confirmPass = $_POST['confirm_password'];
+				$user_id = $_SESSION['id']; 
+
+				//Kollar att det gammla lösenordet inte är samma som det nya.
+				if($confirmPass == $newPass){
+					if($oldPass == $userDbPass){
+						if($oldPass !== $userDbPass){
+							$hashed_pass = password_hash($newPass, PASSWORD_DEFAULT);
+							$pass_stamt = $conn->prepare("UPDATE users SET password=? WHERE id=$user_id");
+							$pass_stamt->bind_param("s", $hashed_pass);
+							if ($pass_stamt->execute() === true) {
+								$error_pass =  "The password was successfully changed!";	
+							}else{
+								echo "Error: " . $conn->error;
+							}
+						}else{
+							$error_pass = "You cannot have the same password as the current!";
+							
+						}
+					}else{
+						$error_pass = "Wrong password!";
+					}
+
+				}else{
+					$error_pass =  "The passwords do not match!";
+				}
+			}else{
+				$error_pass =  "fill in all fields";
+			}
+
+		}elseif($tabname == "change_profile_picture"){
+			if(isset($_FILES['my_image'])){
+				$img_name = $_FILES['my_image']['name'];
+				$img_size = $_FILES['my_image']['size'];
+				$tmp_name = $_FILES['my_image']['tmp_name'];
+
+					$img_data = file_get_contents($tmp_name);
+					$img_type = $_FILES['my_image']['type'];
+				
+					$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
+            		$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
+					$stmt->execute();
+					$error_change_profile_picture = "Your profile picture has successfully been updated!";
+
+			}else{
+				$error_change_profile_picture = "No image has been uploaded!";
+			}
+		
+			
+		}elseif($tabname == "security_and_privacy"){
+			$fa2 = $_POST['flexSwitchCheckDefault'];
+
+			if(isset($_COOKIE["TwoFA"])) {
+				if($_COOKIE["TwoFA"] == "true"){
+					
+				}elseif($_COOKIE["TwoFA"] == "false"){
+	
+				}
+			}
+				
+		}
+
+
+	}
+	?>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -50,7 +186,7 @@
 				<label for="email">Email:</label>
 				<input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?>" required><br><br>
 				
-				
+				<p> <?php echo $error_personal_info ?></p>
 			
 			<input type="submit" value="Save changes"> 
 		</div>
@@ -66,7 +202,7 @@
 				<input type="password" id="new_password" name="new_password" required><br><br>
 				<label for="confirm_password">Confirm Password:</label>
 				<input type="password" id="confirm_password" name="confirm_password" required><br><br>
-			
+				<p> <?php echo $error_pass ?></p>
 			<input type="submit" value="Save changes"> 
 		</div>
 	</form>
@@ -78,8 +214,9 @@
 		-->
 		<div id="change_profile_picture">
 			<input type = "file" name = "my_image">
+			<p><?php echo $error_change_profile_picture ?></p>
 			<input type="submit" name="submit" value="Submit">
-
+			
 		</div>
 	</form>
 
@@ -186,133 +323,7 @@
 	</script>
 	
 	
-	<?php
-		require "./config.php";
-
-		
-		
-		
 	
-	if($_SERVER['REQUEST_METHOD'] == 'POST'){
-		//$msg = "sds";
-
-		$tabname = $_COOKIE["tabname"];
-		$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-		if($tabname == "personal_info"){
-			$firstname = $_POST['first_name'];
-			$lastname = $_POST['last_name'];
-			$username = $_POST['username'];
-			$email = $_POST['email'];
-
-			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email'])){
-				$username_lowercase = strtolower($username);
-				
-				if($_POST['username'] != $_SESSION['username']){
-					$result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
-					$user_id = $_SESSION['id'];
-					if ($result->num_rows == 0) {
-						$send = "UPDATE users SET username='$username', email='$email', firstname='$firstname', lastname='$lastname' WHERE id=$user_id";
-						
-						if ($conn->query($send) === true) {
-							$_SESSION['username'] = $_POST['username'];
-							$_SESSION['email'] = $_POST['email'];
-							$_SESSION['firstname'] = $_POST['first_name'];
-							$_SESSION['lastname'] = $_POST['last_name'];
-							//$msg = "saved changes!";
-							echo "saved changes!";
-						} else {
-							echo "Error: " . $conn->error;
-						}
-		
-					} else {
-						//$msg = "Username already in use!";
-						echo "Username already in use!";
-					}
-				}else{
-					$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
-					$send = "UPDATE users SET firstname='$firstname', lastname='$lastname', email='$email' WHERE id='$user_id'";
-					if ($conn->query($send) === true) {
-						$_SESSION['email'] = $_POST['email'];
-						$_SESSION['firstname'] = $_POST['first_name'];
-						$_SESSION['lastname'] = $_POST['last_name'];
-						//$msg = "saved changes!";
-						echo "saved changes!";
-					} else {
-						echo "Error: " . $conn->error;
-					}
-				}
-				
-	
-			}else{
-				//$msg =  "fill in all fields";
-				echo "fill in all fields";
-			}
-		}elseif($tabname == "change_password"){
-			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
-			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
-				$oldPass = $_POST['current_password'];
-				$userDbPass = $_SESSION['password'];
-				$newPass = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-				$confirmPass = password_hash($_POST['confirm_password'], PASSWORD_DEFAULT);
-				$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
-
-				//Kollar att det gammla lösenordet inte är samma som det nya.
-				if($confirmPass == $newPass){
-					if($oldPass !== $userDbPass){
-						$pass_stamt = $conn ->prepare("UPDATE users SET password='?' WHERE id=$user_id");
-						$pass_stamt->bind_param("s", $newPass);
-						if ($pass_stamt->execute() === true) {
-							echo "The password was successfully changed!";	
-						}else{
-							echo "Error: " . $conn->error;
-						}
-					}else{
-						echo "incorrect password";
-						
-					}
-					
-				}else{
-					echo "The passwords do not match!";
-				}
-			}else{
-				echo "fill in all fields";
-			}
-
-		}elseif($tabname == "change_profile_picture"){
-			if(isset($_FILES['my_image'])){
-				$img_name = $_FILES['my_image']['name'];
-				$img_size = $_FILES['my_image']['size'];
-				$tmp_name = $_FILES['my_image']['tmp_name'];
-
-					$img_data = file_get_contents($tmp_name);
-					$img_type = $_FILES['my_image']['type'];
-				
-					$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
-            		$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
-					$stmt->execute();
-					echo "Your profile picture has successfully been updated!";
-
-			}else{
-				echo "No image has been uploaded!";
-			}
-		
-			
-		}elseif($tabname == "security_and_privacy"){
-			$fa2 = $_POST['flexSwitchCheckDefault'];
-
-			if(isset($_COOKIE["TwoFA"])) {
-				if($_COOKIE["TwoFA"] == "true"){
-					
-				}elseif($_COOKIE["TwoFA"] == "false"){
-	
-				}
-			}
-				
-		}
-
-
-	}
-	?>
   </body>
   </html>
 
