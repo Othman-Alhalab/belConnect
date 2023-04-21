@@ -183,12 +183,6 @@
 		}
 		
 		selectTab(tabname_in)
-		/*
-		document.cookie = "tabname=personal_info"
-		const curr = document.cookie ? "personal_info" : "x"
-		
-		selectTab('personal_info')
-		*/
 	</script>
 	
 	
@@ -258,15 +252,16 @@
 			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
 				$oldPass = $_POST['current_password'];
 				$userDbPass = $_SESSION['password'];
-				$newPass = $_POST['new_password'];
-				$confirmPass = $_POST['confirm_password'];
+				$newPass = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+				$confirmPass = password_hash($_POST['confirm_password'], PASSWORD_DEFAULT);
 				$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 
 				//Kollar att det gammla lösenordet inte är samma som det nya.
 				if($confirmPass == $newPass){
 					if($oldPass !== $userDbPass){
-						$send = "UPDATE users SET password='$newPass' WHERE id=$user_id";
-						if ($conn->query($send) === true) {
+						$pass_stamt = $conn ->prepare("UPDATE users SET password='?' WHERE id=$user_id");
+						$pass_stamt->bind_param("s", $newPass);
+						if ($pass_stamt->execute() === true) {
 							echo "The password was successfully changed!";	
 						}else{
 							echo "Error: " . $conn->error;
@@ -302,8 +297,6 @@
 			}
 		
 			
-				
-
 		}elseif($tabname == "security_and_privacy"){
 			$fa2 = $_POST['flexSwitchCheckDefault'];
 
@@ -315,7 +308,6 @@
 				}
 			}
 				
-
 		}
 
 

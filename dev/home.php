@@ -24,26 +24,17 @@
             
 
             <?php
+                $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
-
-            //1. måste lösa så att det finns en koppling till id i users så at det kan användas i profilbild skiten
-
+                $usr = $_SESSION['username'];
                 $tags = array("other", "food", "art", "programming", "music");
                 // Check if the form was submitted
                 if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $selected_tags = isset($_POST['tags']) ? $_POST['tags'] : array();
                 } else {
-                    // By default, all tags are selected
+                    //gör så att alla tags är selected by default 
                     $selected_tags = $tags;
                 };
-
-            
-                $usr = $_SESSION['username'];
-                $servername = "localhost";
-                $username = "root";
-                $password = "";
-                $dbname = "BelConnectDB";
-                $conn = mysqli_connect($servername, $username, $password, $dbname);
 
                 // Build the WHERE clause for the tags
                 $where_clause = "";
@@ -64,6 +55,8 @@
                     <form method="POST" id="filter-form" style="text-align:center">
                         <h3>Filter posts by tag:</h3>
                         <div id="tags-container">';
+                
+                //skriver ut alla tags
                 foreach ($tags as $tag) {
                     $checked = in_array($tag, $selected_tags) ? "checked" : "";
                     echo '<label><input type="checkbox" name="tags[]" value="' . $tag . '" ' . $checked . '> ' . ucfirst($tag) . '</label><br>';
@@ -78,7 +71,6 @@
 
                 $profile_picture_query = "SELECT * FROM users";
                 $pic_res = $conn->query($profile_picture_query);
-                
                 $profile_pictures = [];
 
                 //Denna while loop gör så att alla bilder hamnar i "profile_pictures" Arrayn
@@ -101,7 +93,9 @@
                     echo '<div class="post-meta">By ' . $row['author'] . ' on ' . $row['created_at'] . '</div>';
                     echo '<div class="post-content">' . $row['post_data'] . '</div>';
                     
-                    // Display the profile picture for the author
+                    // kollar om den som la upp inlägget valde att checka "Anonymous" boxen eller inte
+                    //om det är så att användaren klickade "Anonymous" så blir profilbilden default-profile-photo.jpg
+                    //och inte den som är vald i settintgs
                     if($row['author'] === "Anonymous"){
                         echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
                     }else{

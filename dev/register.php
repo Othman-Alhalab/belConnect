@@ -129,20 +129,21 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
         if (!inputTest($user)) {
             echo "Invalid username format!";
         } else {
+            $pass_hash = password_hash($pass, PASSWORD_DEFAULT);      
             $username_lowercase = strtolower($user);
             $result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
             if ($result->num_rows == 0) {
-                $send = "INSERT INTO users (username, password, email, firstname, lastname) VALUES ('$user', '$pass', '$email', '$firstname', '$lastname')";
+
+                //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
+                $register_stmt = $conn->prepare("INSERT INTO users (username, password, email, firstname, lastname) VALUES (?, ?, ?, ?, ?)");
+                $register_stmt->bind_param("sssss", $user, $pass_hash, $email, $firstname, $lastname);
                 try {
-                    if ($conn->query($send) === true) {
+                    if ($register_stmt->execute() === true) {
                         $stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE username = ?");
-    
                         mysqli_stmt_bind_param($stmt, "s", $_POST["username"]);
-                        
                         mysqli_stmt_execute($stmt);
-                        
                         $result = mysqli_stmt_get_result($stmt);
-    
+                        
                         $_SESSION['username'] = $_POST["username"];
                         $_SESSION['password'] = $_POST["password"];
                         $_SESSION['email'] = $_POST['email'];
