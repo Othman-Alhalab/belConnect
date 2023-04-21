@@ -1,13 +1,15 @@
 
 <?php
     session_start(); // start the session
-
+    $error_msg = "";
     if(isset($_SESSION['username'])) :?>
 
     <?php 
          $Input_postName = isset($_POST['post-name']) ? $_POST['post-name'] : "" ;
          $Input_postdata = isset($_POST['post-data']) ? $_POST['post-data'] : "" ;
     ?>
+
+
         <nav>
             <div class="navbar-left">
                 <a href="./home.php">Home</a>
@@ -53,9 +55,9 @@
             <input type="checkbox" name="tags[]" value="other" id="other-tag">
             <label for="other-tag">Other</label>
         </div>
-
-        
-
+        <br>
+        <p><?php echo $error_msg ?></p>
+        <br>
         <input type="submit" value="Submit">
         
         <?php echo "USER: " . $_SESSION['username']?>
@@ -63,8 +65,7 @@
     
     <h1>My posts</h1>
 
-
-<?php
+    <?php
     require "config.php";
     //Till att skriva ut "Mina" posts (inloggade användarens posts)
     if(isset($_SESSION['username'])) {
@@ -115,23 +116,13 @@
 
 ?>
 
-<?php else : ?>
-    <h1>no access</h1>
-    <a href="./logout.php">Back</a>
-<?php endif; ?>
-
-
 <?php
     //Till att lägga upp inlägg
 
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
        if(isset($_POST['post-name']) && isset($_POST['tags'])){
          if(!empty($_POST['post-data'] && !empty($_POST['post-name']))){
-            $servername = "localhost";
-            $username = "root";
-            $password = "";
-            $dbname = "BelConnectDB";
-            $conn = mysqli_connect($servername, $username, $password, $dbname);
+            $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
             
             $username = $_SESSION['username'];
             $postName = strip_tags($_POST['post-name']);
@@ -140,13 +131,12 @@
             $tags = implode(',', $_POST['tags']);
             $user_id = $_SESSION['id'];
             
-            $sql = "INSERT INTO posts (user_id, author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param('isssss',$user_id, $author ,$username, $postName, $postData, $tags);
+            $stmt = $conn->prepare("INSERT INTO posts (user_id, author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('isssss', $user_id, $author ,$username, $postName, $postData, $tags);
             $stmt->execute();
             header("Location: post.php");
          }else{
-            echo "<script>alert('Please fill out all fileds.')</script>";
+            $error_msg = "Please fill out all fileds.";
         }
             
        }
@@ -154,4 +144,11 @@
     }
     
 ?>
+
+
+<?php else : ?>
+    <h1>no access</h1>
+    <a href="./logout.php">Back</a>
+<?php endif; ?>
+
 

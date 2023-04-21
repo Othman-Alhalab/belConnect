@@ -105,21 +105,25 @@
 			}
 
 		}elseif($tabname == "change_profile_picture"){
-			if(isset($_FILES['my_image'])){
-				$img_name = $_FILES['my_image']['name'];
-				$img_size = $_FILES['my_image']['size'];
-				$tmp_name = $_FILES['my_image']['tmp_name'];
-
-					$img_data = file_get_contents($tmp_name);
-					$img_type = $_FILES['my_image']['type'];
-				
-					$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
-            		$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
-					$stmt->execute();
-					$error_change_profile_picture = "Your profile picture has successfully been updated!";
-
-			}else{
-				$error_change_profile_picture = "No image has been uploaded!";
+			try {
+				if(isset($_FILES['my_image'])){
+					$img_name = $_FILES['my_image']['name'];
+					$img_size = $_FILES['my_image']['size'];
+					$tmp_name = $_FILES['my_image']['tmp_name'];
+	
+						$img_data = file_get_contents($tmp_name);
+						$img_type = $_FILES['my_image']['type'];
+					
+						$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
+						$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
+						$stmt->execute();
+						$error_change_profile_picture = "Your profile picture has successfully been updated!";
+	
+				}else{
+					$error_change_profile_picture = "No image has been uploaded!";
+				}
+			} catch (\Throwable $th) {
+				$error_change_profile_picture = "No image was selected";
 			}
 		
 			
