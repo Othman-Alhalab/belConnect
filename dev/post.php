@@ -4,7 +4,8 @@
     $error_msg = "";
     if(isset($_SESSION['username'])) :?>
 
-    <?php 
+    <?php
+        //sparar alla input värden efter refresh
          $Input_postName = isset($_POST['post-name']) ? $_POST['post-name'] : "" ;
          $Input_postdata = isset($_POST['post-data']) ? $_POST['post-data'] : "" ;
     ?>
