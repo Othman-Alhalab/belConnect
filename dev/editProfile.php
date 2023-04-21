@@ -4,6 +4,7 @@
 	$error_change_profile_picture = "";
 	$security_and_privacy = "";
 	$error_personal_info = "";
+	$error_2fa = "";
     if(isset($_SESSION['username'])):?>
 
             
@@ -11,7 +12,9 @@
 		require "./config.php";
 
 		
-		
+	function myfun(){
+		echo "hello";
+	}
 		
 	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -128,16 +131,30 @@
 		
 			
 		}elseif($tabname == "security_and_privacy"){
-			$fa2 = $_POST['flexSwitchCheckDefault'];
-
-			if(isset($_COOKIE["TwoFA"])) {
-				if($_COOKIE["TwoFA"] == "true"){
-					
-				}elseif($_COOKIE["TwoFA"] == "false"){
-	
+			$question = $_POST['question'];
+			$answer = $_POST['answer'];
+			$tru = true;
+			
+			$stmt = $conn->prepare("SELECT * FROM user_secret_questions");		
+			$stmt->execute();
+			$stmt->store_result();
+			
+			if($stmt->num_rows == 0){
+				if(!empty($answer)){
+					$register_answer = $conn->prepare("INSERT INTO user_secret_questions (active_status, user_id, question, answer) VALUES (?, ?, ?, ?)");
+					$register_answer->bind_param("ssss", $tru, $_SESSION['id'], $question, $answer);
+					if($register_answer -> execute() === true){
+						$error_2fa = "shit was added nice!";
+					}
+				}
+				else{
+					$error_2fa = "pls enter an answer";
 				}
 			}
-				
+			else{
+				// at least one row returned, set error message
+				$error_2fa = "you already have a secret question set!";
+			}
 		}
 
 
@@ -227,26 +244,21 @@
 	
 	<form action="" method="post" id="security_and_privacy">
 		<p>2FA</p>
-		<label class="switch">
-			<input type="checkbox" id="tglSwitch">
-			<span class="slider round"></span>
-		</label>
 
-		<br>
-		<br>
-		<br>
-		<div id="myForm" style="display:none;">
+		<div id="myForm">
 		<label for="question"></label>
 
-			<select id="question">
+			<select id="question" name="question">
 			<option value="show">What is your favorite movie or TV show?</option>
 			<option value="born">In what city or town were you born?</option>
 			<option value="pet">What was the name of your first pet?</option>
 			</select>
 			<br>
 			<br>
+			
 			<input type="text" name="answer" id="answer" placeholder="dog name efe">
-			<input type="submit" value="Set security question">
+			<p><?php echo $error_2fa?></p>
+			<input type="submit" value="Set security question" id="question_submit">
 			<br>
 			<br>
 			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
@@ -255,16 +267,7 @@
 
 
 	<script>
-  var toggleSwitch = document.getElementById("tglSwitch");
-  var myForm = document.getElementById("myForm");
-
-  toggleSwitch.addEventListener("click", function() {
-    if (toggleSwitch.checked) {
-      myForm.style.display = "block";
-    } else {
-      myForm.style.display = "none";
-    }
-  });
+		
 </script>
 
 	<script>

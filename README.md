@@ -1,5 +1,4 @@
 # TODO List
-- password hashing
 - kommentarer
 - fixa fler normaleseringar i sql (Tags i post.php)
 - fix alla none prepare statements till prepare statements
