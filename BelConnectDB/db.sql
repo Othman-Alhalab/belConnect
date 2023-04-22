@@ -25,10 +25,12 @@ CREATE TABLE sessions (
 );
 
 CREATE TABLE user_secret_questions (
-  active_status BOOLEAN NOT NULL,
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  active_status BOOLEAN NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
   question VARCHAR(255) NOT NULL,
-  answer VARCHAR(255) NOT NULL
+  answer VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE posts (

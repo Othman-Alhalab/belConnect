@@ -1,0 +1,10 @@
+För att ladda ner mappen i vs code
+1. öppna din map i VS code och clicka "Open in intergrated terminal"
+2. sedan skriv git clone https://github.com/CyberZBit/belConnect
+3. efter det kan du använda
+
+för att lägga upp
+1. snälla kolla att allt funkar
+2. i consolen skriver du "git add ."
+3. sen "git commit -m 'skriv vad du ändrade här' "
+4. sen "git push"

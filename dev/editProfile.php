@@ -9,12 +9,7 @@
 
             
 <?php
-		require "./config.php";
-
-		
-	function myfun(){
-		echo "hello";
-	}
+	require "./config.php";
 		
 	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -144,15 +139,15 @@
 					$register_answer = $conn->prepare("INSERT INTO user_secret_questions (active_status, user_id, question, answer) VALUES (?, ?, ?, ?)");
 					$register_answer->bind_param("ssss", $tru, $_SESSION['id'], $question, $answer);
 					if($register_answer -> execute() === true){
-						$error_2fa = "shit was added nice!";
+						$error_2fa = "A secret question has been set!";
+						$_SESSION['secret'] = true;
 					}
 				}
 				else{
-					$error_2fa = "pls enter an answer";
+					$error_2fa = "Enter your answer and press sumbit";
 				}
 			}
 			else{
-				// at least one row returned, set error message
 				$error_2fa = "you already have a secret question set!";
 			}
 		}
@@ -243,10 +238,15 @@
 
 	
 	<form action="" method="post" id="security_and_privacy">
-		<p>2FA</p>
-
-		<div id="myForm">
-		<label for="question"></label>
+	<?php 
+		$info_stamt = $conn->prepare("SELECT * FROM user_secret_questions");
+		$info_stamt->execute();
+		$info_stamt->store_result();
+		if($info_stamt->num_rows == 0){
+			echo '
+			choose your secret question
+			<div id="myForm">
+			<label for="question"></label>
 
 			<select id="question" name="question">
 			<option value="show">What is your favorite movie or TV show?</option>
@@ -261,14 +261,25 @@
 			<input type="submit" value="Set security question" id="question_submit">
 			<br>
 			<br>
-			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>
+			';
+		}else{
+			echo '<p>2FA</p>
+				A secret question has been set
+				<br>
+			';
+			echo '<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>';
+		}
+		
+				
+				
+
+				
+			
+			?>
 		</div>
+
 	</form>
 
-
-	<script>
-		
-</script>
 
 	<script>
 		//Kollar om det finns någon cookie (allmänt) vilket det alltid gör. jag säger då att om det finns en cookie då ta cookien
