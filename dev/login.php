@@ -67,6 +67,7 @@
 		<input type="password" id="password" name="password"><br><br>
         <p style="color:red;"><?php echo $errormsg?></p>
 		<p><a href="./register.php">Register Account</a></p>
+        <p><a href="./forgotPassword.php">Forgot pasword</a></p>
 		<input type="submit" value="Login">
 	</form>
 </body>
