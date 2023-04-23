@@ -3,64 +3,68 @@
     session_start();
     require 'metoder.php';
     require "config.php";
-    $page = "finduser";
     
     $errormsg = "";
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
-
+    
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
-       if($page === "finduser"){ 
-            $email = $_POST['email'];
+       if($_SESSION['page'] === "finduser"){ 
+            $_SESSION['email'] = $_POST['email'];
             $question = $_POST['question'];
             $answer = $_POST['answer'];
 
             if(isset($_POST['email']) && isset($_POST['question']) && isset($_POST['answer'])){
                 $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions, users WHERE email=?");	
-                $info_stamt->bind_param("s", $email);
+                $info_stamt->bind_param("s", $_SESSION['email']);
                 $info_stamt->execute();
                 $results = $info_stamt->get_result();
     
                 while($table = $results->fetch_assoc()){
                     if(strtolower($table['question']) === strtolower($question) && strtolower($table['answer']) === strtolower($answer)){
-                        $page = "founduser";
+                        $_SESSION['page'] = "founduser";
                         $_SESSION['temp_store_mail'] = $table['email'];
                     }
                 }
+           }
+
                 
-            }else{
+            else{
                 $errormsg = "fill out all forms";
             }
         
 
-       }else if($page === "founduser"){
+       }else if($_SESSION['page'] === "founduser"){
         $password = $_POST['password'];
         $confirm_password = $_POST['Confirm_password'];
-
-            if(isset($_SESSION['temp_store_email'])){
-                if(isset($password) && isset($Confirm_password)){
-                    if($password === $Confirm_password){
-                        $reset_pass_call = $conn ->prepare('SELECT * FROM users WHERE email=?');
-                        $reset_pass_call->bind_param('s', $email);
-                        $reset_pass_call->execute();
-        
-                        $results = $reset_pass_call->get_result();
-                        while($table = $results->fetch_assoc()){
-                           
-                        }
-                    }else{
-                        $errormsg = "The passwords do not match";
-                    }
-                }else{
-                    $errormsg = "fill out all forms";
+        $pass_hash = password_hash($password, PASSWORD_DEFAULT);
+        if(isset($_POST['password']) && isset($_POST['Confirm_password'])){
+            if($password === $confirm_password){
+                $reset_pass_call = $conn ->prepare('SELECT * FROM users WHERE email=?');
+                $reset_pass_call->bind_param('s', $_SESSION['email']);
+                $reset_pass_call->execute();
+    
+                $results = $reset_pass_call->get_result();
+                while($table = $results->fetch_assoc()){
+                    $set_pass = $conn->prepare('UPDATE users SET password=? WHERE email=?');
+                    $set_pass->bind_param('ss', $pass_hash, $_SESSION['email']);
+                    $set_pass->execute();
+                    echo "The password was reset";
+                    session_destroy();
+                    header('location: login.php');
                 }
             }else{
-                header('location forgotPassword.php');
+                echo "The passwords do not match";
             }
+        }else{
+            echo "fill out all forms";
+        }
+    }
+    
         
        }
-    }
+    
     
 ?>
 
@@ -74,8 +78,8 @@
 </head>
 <body>
     <h2>Login</h2>
-    
-    <?php if($page == "finduser"):?>
+    <?php echo "text: " . $_SESSION['page'] . " mail: " . $_SESSION['email']?>
+    <?php if($_SESSION['page'] == "finduser"):?>
             <form method="post" action="" name="getInfo">
             <label for="username">Email:</label>
             <input type="email" id="email" name="email"><br><br>
@@ -97,7 +101,7 @@
             </form>
             
 
-    <?php elseif ($page == "founduser"):?>
+    <?php elseif ($_SESSION['page'] == "founduser"):?>
             
             <form method="post" action="" name="setInfo">
 
