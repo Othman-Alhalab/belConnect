@@ -260,12 +260,12 @@
 			<input type="submit" value="Set security question" id="question_submit">
 			<br>
 			<br>
-		<?php else:?>
+	<?php else:?>
 			<p>2FA</p>
 				A secret question has been set
 				<br>
 			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;" onclick="<?php $_SESSION["delAccount"] = "finduser"?>">Delete account</a></button>
-		<?php endif?>
+	<?php endif?>
 
 
 

@@ -34,11 +34,18 @@
                         while($table = $results->fetch_assoc()){
                           if(password_verify($_POST['password'], $table['password']) && $_SESSION['id'] == $table['id'] && strtolower($_POST['username']) === strtolower($table['username'])){
                             
-                            //ej klar
-                            $delAcc = $conn->prepare('DELETE FROM users WHERE id=?');
+                            $delAcc = $conn->prepare('DELETE FROM user_secret_questions WHERE user_id=?;');
                             $delAcc->bind_param('i', $table['id']);
                             $delAcc->execute();
                             
+                            $delAcc = $conn->prepare('DELETE FROM users WHERE id=?;');
+                            $delAcc->bind_param('i', $table['id']);
+                            $delAcc->execute();
+
+                            $delAcc = $conn->prepare('DELETE FROM posts WHERE id=?;');
+                            $delAcc->bind_param('i', $table['id']);
+                            $delAcc->execute();
+                            header("Location: logout.php"); 
                           }else{
                             echo "wrong password";
                           }

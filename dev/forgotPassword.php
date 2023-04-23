@@ -1,5 +1,8 @@
 
 <?php
+
+    //fixa error managment
+
     session_start();
     require 'metoder.php';
     require "config.php";
