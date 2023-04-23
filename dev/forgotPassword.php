@@ -78,7 +78,6 @@
 </head>
 <body>
     <h2>Login</h2>
-    <?php echo "text: " . $_SESSION['page'] . " mail: " . $_SESSION['email']?>
     <?php if($_SESSION['page'] == "finduser"):?>
             <form method="post" action="" name="getInfo">
             <label for="username">Email:</label>

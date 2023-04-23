@@ -242,10 +242,9 @@
 		$info_stamt = $conn->prepare("SELECT * FROM user_secret_questions");
 		$info_stamt->execute();
 		$info_stamt->store_result();
-		if($info_stamt->num_rows == 0){
-			echo '
-			choose your secret question
-			<div id="myForm">
+		
+		if($info_stamt->num_rows == 0):?>
+			
 			<label for="question"></label>
 
 			<select id="question" name="question">
@@ -261,22 +260,14 @@
 			<input type="submit" value="Set security question" id="question_submit">
 			<br>
 			<br>
-			';
-		}else{
-			echo '<p>2FA</p>
+		<?php else:?>
+			<p>2FA</p>
 				A secret question has been set
 				<br>
-			';
-			echo '<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;">Delete account</a></button>';
-		}
-		
-				
-				
+			<button type="button" class="btn btn-outline-danger"><a href="./deleteAccount.php" style="text-decoration: none; color: black;" onclick="<?php $_SESSION["delAccount"] = "finduser"?>">Delete account</a></button>
+		<?php endif?>
 
-				
-			
-			?>
-		</div>
+
 
 	</form>
 
@@ -288,9 +279,6 @@
 		//regex från stackoverflow
 		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
 
-		function switchFunction(mode){
-			
-		}
 		
 		function selectTab(tabname){
 			switch (tabname) {
