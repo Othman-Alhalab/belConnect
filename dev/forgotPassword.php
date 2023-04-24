@@ -8,6 +8,8 @@
     require "config.php";
     
     $errormsg = "";
+    $Input_email = isset($_POST['email']) ? $_POST['email'] : "" ;
+    $Input_answer = isset($_POST['answer']) ? $_POST['answer'] : "" ;
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
@@ -18,7 +20,7 @@
             $question = $_POST['question'];
             $answer = $_POST['answer'];
 
-            if(isset($_POST['email']) && isset($_POST['question']) && isset($_POST['answer'])){
+            if(!empty($_POST['email']) && isset($_POST['question']) && !empty($_POST['answer'])){
                 $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions, users WHERE email=?");	
                 $info_stamt->bind_param("s", $_SESSION['email']);
                 $info_stamt->execute();
@@ -28,12 +30,11 @@
                     if(strtolower($table['question']) === strtolower($question) && strtolower($table['answer']) === strtolower($answer)){
                         $_SESSION['page'] = "founduser";
                         $_SESSION['temp_store_mail'] = $table['email'];
+                    }else{
+                        $errormsg = "incorrect info";
                     }
                 }
-           }
-
-                
-            else{
+           }else{
                 $errormsg = "fill out all forms";
             }
         
@@ -53,15 +54,14 @@
                     $set_pass = $conn->prepare('UPDATE users SET password=? WHERE email=?');
                     $set_pass->bind_param('ss', $pass_hash, $_SESSION['email']);
                     $set_pass->execute();
-                    echo "The password was reset";
                     session_destroy();
                     header('location: login.php');
                 }
             }else{
-                echo "The passwords do not match";
+                $errormsg = "The passwords do not match";
             }
         }else{
-            echo "fill out all forms";
+            $errormsg = "fill out all forms";
         }
     }
     
@@ -84,7 +84,7 @@
     <?php if($_SESSION['page'] == "finduser"):?>
             <form method="post" action="" name="getInfo">
             <label for="username">Email:</label>
-            <input type="email" id="email" name="email"><br><br>
+            <input type="email" id="email" name="email" value="<?php echo $Input_email?>"><br><br>
             <label for="question">Secret question</label>
         
                 <select id="question" name="question">
@@ -95,7 +95,7 @@
                 <br>
                 <br>
                 <label for="answer">Answer:</label>
-                <input type="text" id="answer" name="answer"><br><br>
+                <input type="text" id="answer" name="answer" value="<?php echo $Input_answer?>"><br><br>
         
             <p style="color:red;"><?php echo $errormsg?></p>
             <p><a href="./login.php">Back</a></p>
@@ -112,7 +112,7 @@
 
                 <label for="Confirm_password">Confirm password:</label>
                 <input type="password" id="password" name="Confirm_password"><br><br>
-
+                <p style="color:red;"><?php echo $errormsg?></p>
                 <p><a href="./login.php">Back</a></p>
                 <input type="submit" value="change">
 

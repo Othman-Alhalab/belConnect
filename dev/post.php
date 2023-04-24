@@ -76,20 +76,21 @@
 
         //Används till att radera inlägg genom att hitta idt på inlägget och användarnamnet på användaren
         if(isset($_POST['delete_post'])) {
-            $post_id = $_POST['post_id'];
-            $sql = "DELETE FROM posts WHERE id = '$post_id' AND username = '$usr'";
-            $result = $conn->query($sql);
-            if($result) {
+            $delete = $conn->prepare('DELETE FROM posts WHERE id=? AND username=?');
+            $delete->bind_param('ss', $_POST['post_id'], $_SESSION['username']);
+
+            if($delete->execute()) {
                 echo '<div class="success-message">Post deleted successfully.</div>';
             } else {
                 echo '<div class="error-message">Error deleting post.</div>';
             }
         }
 
-        $sql = "SELECT * FROM posts WHERE username = '$usr' ORDER BY created_at DESC";
-        $result = $conn->query($sql);
-        //echo mysqli_num_fields($result);
-        while ($row = $result->fetch_assoc()) {
+        $getPost_stamt = $conn -> prepare("SELECT * FROM posts WHERE username =? ORDER BY created_at DESC");
+        $getPost_stamt->bind_param('s', $_SESSION['username']);
+        $getPost_stamt->execute();
+        $results = $getPost_stamt->get_result();
+        while ($row = $results->fetch_assoc()) {
             echo '<div class="post-container">';
             echo '<div class="post-header">' . $row['post_name'] . '</div>';
             echo '<div class="post-meta">By ' . $row['author'] . " (you)". ' on ' . $row['created_at'] . '</div>';
