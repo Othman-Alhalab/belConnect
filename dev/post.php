@@ -1,8 +1,9 @@
 
 <?php
+    require "config.php";
     session_start(); // start the session
     $error_msg = "";
-    if(isset($_SESSION['username'])) :?>
+    if(isset($_SESSION['Username'])) :?>
 
     <?php
         //sparar alla input värden efter refresh
@@ -61,43 +62,102 @@
         <br>
         <input type="submit" value="Submit">
         
-        <?php echo "USER: " . $_SESSION['username']?>
+        <?php echo "USER: " . $_SESSION['Username']?>
     </form>
     
     <h1>My posts</h1>
 
-    <?php
-    require "config.php";
+
+<?php
+    //Till att lägga upp inlägg
+    if($_SERVER['REQUEST_METHOD'] == 'POST'){
+       if(isset($_POST['post-name']) && isset($_POST['tags'])){
+         if(!empty($_POST['post-data'] && !empty($_POST['post-name']))){
+            
+            $username = $_SESSION['Username'];
+            $Title = strip_tags($_POST['post-name']);
+            $Content = strip_tags($_POST['post-data']);
+            $Author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['Username'];
+            $tags = implode(',', $_POST['tags']);
+            $user_id = $_SESSION['UserID'];
+            
+            $stmt_tag = $conn->prepare("INSERT INTO Tags (Tags) VALUES (?)");
+            $stmt_tag->bind_param('s', $tags);
+            $stmt_tag->execute();
+            $tag_id = $conn->insert_id;
+            
+            $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Username, Title, Content, TagID) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('issssi', $user_id, $Author, $username ,$Title, $Content, $tag_id);
+            
+            if($stmt->execute() === TRUE){
+                echo "POST UPLOADED";
+                header('Location: post.php');
+            }
+         }else{
+            $error_msg = "Please fill out all fileds.";
+        }
+            
+       }
+    
+    }
+    
+?>
+
+
+
+<?php
+//Tar bort inlägg
     //Till att skriva ut "Mina" posts (inloggade användarens posts)
-    if(isset($_SESSION['username'])) {
+    if(isset($_SESSION['Username'])) {
         
-        $usr = $_SESSION['username'];
-        $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+        $usr = $_SESSION['Username'];
 
         //Används till att radera inlägg genom att hitta idt på inlägget och användarnamnet på användaren
         if(isset($_POST['delete_post'])) {
-            $delete = $conn->prepare('DELETE FROM posts WHERE id=? AND username=?');
-            $delete->bind_param('ss', $_POST['post_id'], $_SESSION['username']);
+            //nytt
 
-            if($delete->execute()) {
+            /*
+            $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
+            $getPost_stamt->bind_param('s', $row['TagID']);
+            $getPost_stamt->execute();
+            $res =$getPost_stamt->get_result();
+            $TagDATA = $res->fetch_assoc();
+            */
+            //////////////////////////////////
+
+            $delete = $conn->prepare('DELETE FROM Posts WHERE PostId=? AND Username=?');
+            $delete->bind_param('ss', $_POST['post_id'], $_SESSION['Username']);
+
+            //nytt
+            $delete_tag = $conn->prepare('DELETE FROM Tags WHERE TagID=?');
+            $delete_tag->bind_param('i', $_POST['post_id']);
+
+
+            if($delete->execute() && $delete_tag->execute()) {
                 echo '<div class="success-message">Post deleted successfully.</div>';
             } else {
                 echo '<div class="error-message">Error deleting post.</div>';
             }
         }
 
-        $getPost_stamt = $conn -> prepare("SELECT * FROM posts WHERE username =? ORDER BY created_at DESC");
-        $getPost_stamt->bind_param('s', $_SESSION['username']);
+        //visar posts som finns
+        $getPost_stamt = $conn -> prepare("SELECT * FROM Posts WHERE Username =? ORDER BY created_at DESC");
+        $getPost_stamt->bind_param('s', $_SESSION['Username']);
         $getPost_stamt->execute();
         $results = $getPost_stamt->get_result();
         while ($row = $results->fetch_assoc()) {
+            $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
+            $getPost_stamt->bind_param('s', $row['TagID']);
+            $getPost_stamt->execute();
+            $res =$getPost_stamt->get_result();
+            $TagDATA = $res->fetch_assoc();
             echo '<div class="post-container">';
-            echo '<div class="post-header">' . $row['post_name'] . '</div>';
-            echo '<div class="post-meta">By ' . $row['author'] . " (you)". ' on ' . $row['created_at'] . '</div>';
-            echo '<div class="post-content">' . $row['post_data'] . '</div>';
+            echo '<div class="post-header">' . $row['Title'] . '</div>';
+            echo '<div class="post-meta">By ' . $row['Author'] . " (you)". ' on ' . $row['Created_at'] . '</div>';
+            echo '<div class="post-content">' . $row['Content'] . '</div>';
 
             // Display the tags for the post
-            $tags = explode(',', $row['tags']);
+            $tags = explode(',', $TagDATA['Tags']);
             echo '<div class="post-tags">';
             foreach($tags as $tag) {
                 echo '<span class="tag ' . $tag . '">' . $tag . '</span>';
@@ -105,7 +165,7 @@
             echo '</div>';
 
             echo '<form method="POST" id="delG">';
-            echo '<input type="hidden" name="post_id" value="' . $row['id'] . '">';
+            echo '<input type="hidden" name="post_id" value="' . $row['PostId'] . '">';
             echo '<button type="submit" name="delete_post">Delete Post</button>';
             echo '</form>';
 
@@ -116,35 +176,6 @@
 
     }
 
-?>
-
-<?php
-    //Till att lägga upp inlägg
-
-    if($_SERVER['REQUEST_METHOD'] == 'POST'){
-       if(isset($_POST['post-name']) && isset($_POST['tags'])){
-         if(!empty($_POST['post-data'] && !empty($_POST['post-name']))){
-            $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-            
-            $username = $_SESSION['username'];
-            $postName = strip_tags($_POST['post-name']);
-            $postData = strip_tags($_POST['post-data']);
-            $author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['username'];
-            $tags = implode(',', $_POST['tags']);
-            $user_id = $_SESSION['id'];
-            
-            $stmt = $conn->prepare("INSERT INTO posts (user_id, author, username, post_name, post_data, tags) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('isssss', $user_id, $author ,$username, $postName, $postData, $tags);
-            $stmt->execute();
-            header("Location: post.php");
-         }else{
-            $error_msg = "Please fill out all fileds.";
-        }
-            
-       }
-    
-    }
-    
 ?>
 
 

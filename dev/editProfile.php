@@ -5,11 +5,11 @@
 	$security_and_privacy = "";
 	$error_personal_info = "";
 	$error_2fa = "";
-    if(isset($_SESSION['username'])):?>
+    if(isset($_SESSION['Username'])):?>
 
             
 <?php
-	require "./config.php";
+	require "config.php";
 		
 	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -22,23 +22,36 @@
 			$lastname = $_POST['last_name'];
 			$username = $_POST['username'];
 			$email = $_POST['email'];
+			$Phone_number = $_POST['Phone_number'];
 
-			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email'])){
+			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email']) && isset($_POST['Phone_number'])){
 				$username_lowercase = strtolower($username);
 				
-				if($_POST['username'] != $_SESSION['username']){
-					$result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
-					$user_id = $_SESSION['id'];
+				if($_POST['username'] != $_SESSION['Username']){
+					$result = $conn->prepare("SELECT * FROM Accounts WHERE LOWER(Username)=?");
+					$result->bind_param('s', $username_lowercase);
+					$result->execute();
+					$result->store_result();
+
 					if ($result->num_rows == 0) {
-						$send = "UPDATE users SET username='$username', email='$email', firstname='$firstname', lastname='$lastname' WHERE id=$user_id";
+
+						$stmt_account = $conn -> prepare("UPDATE Accounts SET Username=?, Email=? WHERE UserID=?");
+						$stmt_account->bind_param('ssi', $_POST['username'], $_POST['email'], $_SESSION['UserID']);
+
 						
-						if ($conn->query($send) === true) {
-							$_SESSION['username'] = $_POST['username'];
-							$_SESSION['email'] = $_POST['email'];
-							$_SESSION['firstname'] = $_POST['first_name'];
-							$_SESSION['lastname'] = $_POST['last_name'];
+						$stmt_users = $conn ->prepare("UPDATE Users SET Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
+						$stmt_users->bind_param('ssii', $_POST['first_name'], $_POST['last_name'], $_POST['Phone_number'], $_SESSION['UserID']);
+
+						
+						if ($stmt_users->execute() && $stmt_account->execute()) {
+							$_SESSION['Username'] = $_POST['username'];
+							$_SESSION['Email'] = $_POST['email'];
+							$_SESSION['Firstname'] = $_POST['first_name'];
+							$_SESSION['Lastname'] = $_POST['last_name'];
+							$_SESSION['Phone_number'] = $_POST['Phone_number'];
 							//$msg = "saved changes!";
 							$error_personal_info = "saved changes!";
+							
 						} else {
 							$error_personal_info = "Error: " . $conn->error;
 						}
@@ -48,16 +61,27 @@
 						$error_personal_info = "Username already in use!";
 					}
 				}else{
-					$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
-					$send = "UPDATE users SET firstname='$firstname', lastname='$lastname', email='$email' WHERE id='$user_id'";
-					if ($conn->query($send) === true) {
-						$_SESSION['email'] = $_POST['email'];
-						$_SESSION['firstname'] = $_POST['first_name'];
-						$_SESSION['lastname'] = $_POST['last_name'];
+					//$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+					$stmt_users = $conn -> prepare("UPDATE Users SET Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
+					$stmt_users->bind_param('ssii', $firstname, $lastname, $Phone_number, $_SESSION['UserID']);
+
+					$stmt_account = $conn -> prepare("UPDATE Accounts SET Username=?, Email=? WHERE UserID=?");
+					$stmt_account->bind_param('ssi', $username, $email, $_SESSION['UserID']);
+
+					if ($stmt_users->execute() && $stmt_account->execute()) {
+						$_SESSION['Username'] = $_POST['username'];
+						$_SESSION['Email'] = $_POST['email'];
+						$_SESSION['Firstname'] = $_POST['first_name'];
+						$_SESSION['Lastname'] = $_POST['last_name'];
+						$_SESSION['Phone_number'] = $_POST['Phone_number'];
 						//$msg = "saved changes!";
 						$error_personal_info = "saved changes!";
+						$stmt_account->close();
+							$stmt_users ->close();
 					} else {
 						$error_personal_info = "Error: " . $conn->error;
+						$stmt_account->close();
+							$stmt_users ->close();
 					}
 				}
 				
@@ -70,19 +94,20 @@
 			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
 			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
 				$oldPass = $_POST['current_password'];
-				$userDbPass = $_SESSION['password'];
+				$userDbPass = $_SESSION['Password'];
 				$newPass = $_POST['new_password'];
 				$confirmPass = $_POST['confirm_password'];
-				$user_id = $_SESSION['id']; 
+				$user_id = $_SESSION['UserID']; 
 
-				//Kollar att det gammla lösenordet inte är samma som det nya.
-				if($confirmPass == $newPass){
-					if($oldPass == $userDbPass){
-						if($oldPass !== $userDbPass){
+				//Kollar att det gammla lösenordet inte är samma som det nya.    $oldPass == $userDbPass
+				if($confirmPass === $newPass){
+					if(password_verify($newPass, $userDbPass)){
+						if($oldPass != $userDbPass){
 							$hashed_pass = password_hash($newPass, PASSWORD_DEFAULT);
-							$pass_stamt = $conn->prepare("UPDATE users SET password=? WHERE id=$user_id");
-							$pass_stamt->bind_param("s", $hashed_pass);
-							if ($pass_stamt->execute() === true) {
+							$pass_stamt = $conn->prepare("UPDATE Accounts SET Password=? WHERE UserID=?");
+							$pass_stamt->bind_param("si", $hashed_pass, $_SESSION['UserID']);
+							if ($pass_stamt->execute()) {
+
 								$error_pass =  "The password was successfully changed!";	
 							}else{
 								echo "Error: " . $conn->error;
@@ -97,6 +122,9 @@
 
 				}else{
 					$error_pass =  "The passwords do not match!";
+					echo $confirmPass ."                                   ";
+					
+					echo $newPass;
 				}
 			}else{
 				$error_pass =  "fill in all fields";
@@ -194,13 +222,18 @@
 	<form action="" method="post" id="personal_info">
 		<div id="personal_info" >
 				<label for="first_name">First Name:</label>
-				<input type="text" id="first_name" name="first_name" value="<?php echo $_SESSION['firstname'] ?>" required><br><br>
+				<input type="text" id="first_name" name="first_name" value="<?php echo $_SESSION['Firstname'] ?>" required><br><br>
 				<label for="last_name">Last Name:</label>
-				<input type="text" id="last_name" name="last_name" value="<?php echo $_SESSION['lastname'] ?>" required><br><br>
+				<input type="text" id="last_name" name="last_name" value="<?php echo $_SESSION['Lastname'] ?>" required><br><br>
+				
 				<label for="username">Username:</label>
-				<input type="text" id="username" name="username" value="<?php echo $_SESSION['username'] ?>" required><br><br>
+				<input type="text" id="username" name="username" value="<?php echo $_SESSION['Username'] ?>" required><br><br>
+				
 				<label for="email">Email:</label>
-				<input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?>" required><br><br>
+				<input type="email" id="email" name="email" value="<?php echo $_SESSION['Email'] ?>" required><br><br>
+				
+				<label for="Phone_number">Phone number:</label>
+				<input type="tel" id="Phone_number" name="Phone_number" value="<?php echo $_SESSION['Phone_number'] ?>" required><br><br>
 				
 				<p> <?php echo $error_personal_info ?></p>
 			

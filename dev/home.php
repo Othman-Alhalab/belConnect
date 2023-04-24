@@ -9,7 +9,7 @@
         require "config.php";
 
         session_start();
-        if(isset($_SESSION['username'])) :?>
+        if(isset($_SESSION['Username'])) :?>
         <nav>
             <div class="navbar-left">
                 <a href="./home.php">Home</a>
@@ -19,16 +19,13 @@
             <div class="navbar-right">
                 <a href="./logout.php">Logout</a>
             </div>
-        </nav>
-
-            
+        </nav> 
 
             <?php
-                $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-
-                $usr = $_SESSION['username'];
+                $usr = $_SESSION['Username'];
                 $tags = array("other", "food", "art", "programming", "music");
                 // Check if the form was submitted
+
                 if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $selected_tags = isset($_POST['tags']) ? $_POST['tags'] : array();
                 } else {
@@ -37,6 +34,7 @@
                 };
 
                 // Build the WHERE clause for the tags
+                
                 $where_clause = "";
                 foreach ($selected_tags as $tag) {
                     if ($where_clause == "") {
@@ -46,8 +44,7 @@
                     }
                 }
 
-                $sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC";
-                $result = $conn->query($sql);
+                
                 
 
                 echo '
@@ -69,7 +66,7 @@
                 echo '<h2>All posts</h2>';
                    
 
-                $profile_picture_query = "SELECT * FROM users";
+                $profile_picture_query = "SELECT * FROM Accounts";
                 $pic_res = $conn->query($profile_picture_query);
                 $profile_pictures = [];
 
@@ -80,33 +77,45 @@
                         $img_type = $picID['image_type'];
                         $base64_image = base64_encode($img_data);
                         $img_src = "data:$img_type;base64,$base64_image";
-                        $profile_pictures[$picID['id']] = $img_src;
+                        $profile_pictures[$picID['UserID']] = $img_src;
                     }else{
-                        $profile_pictures[$picID['id']] = "../assets/default-profile-photo.jpg";
+                        $profile_pictures[$picID['UserID']] = "../assets/default-profile-photo.jpg";
                     }
                 }
-                
-                // Loop through the posts
+                //$stmt = $conn->prepare("SELECT * FROM Posts $where_clause ORDER BY created_at DESC");
+                $stmt = $conn->prepare("SELECT * FROM Posts ORDER BY created_at DESC");
+                $stmt->execute();
+                $result = $stmt->get_result();
+                //$sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC";
+                //$result = $conn->query($sql);
+                // Loopar igenom posts
                 while ($row = $result->fetch_assoc()) {
                     echo '<div class="post-container">';
-                    echo '<div class="post-header">' . $row['post_name'] . '</div>';
-                    echo '<div class="post-meta">By ' . $row['author'] . ' on ' . $row['created_at'] . '</div>';
-                    echo '<div class="post-content">' . $row['post_data'] . '</div>';
+                    echo '<div class="post-header">' . $row['Title'] . '</div>';
+                    echo '<div class="post-meta">By ' . $row['Author'] . ' on ' . $row['Created_at'] . '</div>';
+                    echo '<div class="post-content">' . $row['Content'] . '</div>';
                     
                     // kollar om den som la upp inlägget valde att checka "Anonymous" boxen eller inte
                     //om det är så att användaren klickade "Anonymous" så blir profilbilden default-profile-photo.jpg
                     //och inte den som är vald i settintgs
-                    if($row['author'] === "Anonymous"){
+                    if($row['Author'] === "Anonymous"){
                         echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
                     }else{
-                        if (isset($profile_pictures[$row['user_id']])) {
-                            $img_src = $profile_pictures[$row['user_id']];
+
+                        //från gpt fattar ej själv hur skiten funkar
+                        if (isset($profile_pictures[$row['UserID']])) {
+                            $img_src = $profile_pictures[$row['UserID']];
                             echo '<img src="' . $img_src . '" width="80" height="80" style="float: right; margin-top: -70px;">';
                         }
                     }
                     
                     //Visar vilka tags varje post har
-                    $post_tags = explode(',', $row['tags']);
+                    $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
+                    $getPost_stamt->bind_param('i', $row['TagID']);
+                    $getPost_stamt->execute();
+                    $res =$getPost_stamt->get_result();
+                    $TagDATA = $res->fetch_assoc();
+                    $post_tags = explode(',', $TagDATA['Tags']);
                     $post_tags_filtered = array_intersect($tags, $post_tags);
                     if (!empty($post_tags_filtered)) {
                         echo '<div class="post-tags">';

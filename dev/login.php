@@ -9,33 +9,30 @@
     
     $errormsg = "";
     if(isset($_POST['username']) && isset($_POST['password'])) {
-        $user = $_POST['username'];
-        $pass = $_POST['password'];
-        $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+        $username = $_POST['username'];
+        $password = $_POST['password'];
     
-        // Check connection
-        if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
-        }
         
         //Kollar för med databasen om det finns en användare med "username input"
-        $stmt = $conn->prepare("SELECT id, username, password, email, firstname, lastname FROM users WHERE username = ?");
-        mysqli_stmt_bind_param($stmt, "s", $user);
-        mysqli_stmt_execute($stmt);
+        $stmt = $conn->prepare("SELECT * FROM Accounts, Users WHERE Username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
         $result = $stmt->get_result();
+
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
-            $hashed_password = $row['password'];
-            if (password_verify($pass, $hashed_password)) {
+            $hashed_password = $row['Password'];
+            if (password_verify($password, $hashed_password)) {
+
 
                 //Lägger in dessa variabler i vår Session så att det kan användas senare
-                $_SESSION['username'] = $row['username'];
-                $_SESSION['password'] = $row['password'];
-                $_SESSION['email'] = $row['email'];
-                $_SESSION['id'] = $row['id'];
-                $_SESSION['firstname'] = $row['firstname'];
-                $_SESSION['lastname'] = $row['lastname'];
-
+                $_SESSION['Username'] = $row['Username'];
+                $_SESSION['Password'] = $row['Password'];
+                $_SESSION['Email'] = $row['Email'];
+                $_SESSION['UserID'] = $row['UserID'];
+                $_SESSION['Firstname'] = $row['Firstname'];
+                $_SESSION['Lastname'] = $row['Lastname'];
+                $_SESSION['Phone_number'] = $row['Phone_number'];
                 header("Location: home.php");
             } else {
                 $errormsg = "Invalid username or password";

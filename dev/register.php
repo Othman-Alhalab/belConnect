@@ -4,6 +4,8 @@
     $input_Firstname = isset($_POST['firstname']) ? $_POST['firstname'] : '';
     $input_Lastname = isset($_POST['lastname']) ? $_POST['lastname'] : '';
     $input_Username = isset($_POST['username']) ? $_POST['username'] : '';
+    $input_age = isset($_POST['age']) ? $_POST['age'] : '';
+    $input_phone = isset($_POST['phone_number']) ? $_POST['phone_number'] : '';
     $input_Email = isset($_POST['email']) ? $_POST['email'] : '';
 
 ?>
@@ -21,7 +23,9 @@
 
     <form method="post" action="">
     <h2 id="regid">Register</h2>
+    <input type="text" name="" id="" value="mamma100">
         <div class="slide">
+            
             <label for="firstname">* First Name:</label>
             <input type="text" id="firstname" name="firstname" value="<?php echo $input_Firstname; ?>" required><br><br>
 
@@ -34,8 +38,18 @@
             <label for="email">* Email:</label>
             <input type="email" id="email" name="email" value="<?php echo $input_Email; ?>" required><br><br>
 
+             
+            <label for="phone_number">* phone number:</label>
+            <input type="tel" id="email" name="phone_number" value="<?php echo $input_phone; ?>" required><br><br>
+
+
+            <label for="age">* Age:</label>
+            <input type="date" id="date" name="age" value="<?php echo $input_age; ?>" required><br><br>
+
+
             <button type="button" class="next">Next</button>
         </div>
+
         <div class="slide">
             <label for="password">* Password:</label>
             <input type="password" id="password" name="password" pattern=".{8,}" required><br><br>
@@ -107,59 +121,58 @@ session_start();
 
 if (isset($_POST["username"]) && isset($_POST["password"])) {
     
-    $user = $_POST["username"];
-    $pass = $_POST["password"];
+    $username = $_POST["username"];
+    $phone_number = $_POST['phone_number'];
+    $age = $_POST['age'];
+    $password = $_POST["password"];
+    $confirmPass = $_POST["password_con"];
     $email = $_POST['email'];
-
     $firstname = $_POST['firstname'];
     $lastname = $_POST['lastname'];
-    $confirmPass = $_POST["password_con"];
-    $conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+
     
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
     }
 
-    $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE username = ?");
-    mysqli_stmt_bind_param($stmt, "s", $user);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_num_rows(mysqli_stmt_get_result($stmt));
+    $user_reg_stmt = $conn->prepare("SELECT * FROM Accounts WHERE Username=?");
+    $user_reg_stmt->bind_param('s', $username);
+    $user_reg_stmt->execute();
+    $result = mysqli_num_rows(mysqli_stmt_get_result($user_reg_stmt));
 
-    if (isset($pass, $confirmPass) && $pass == $confirmPass) {
-        if (!inputTest($user)) {
+    if (isset($password, $confirmPass) && $password == $confirmPass) {
+        if (!inputTest($username)) {
             echo "Invalid username format!";
         } else {
-            $pass_hash = password_hash($pass, PASSWORD_DEFAULT);      
-            $username_lowercase = strtolower($user);
-            $result = $conn->query("SELECT * FROM users WHERE LOWER(username)='$username_lowercase'");
-            if ($result->num_rows == 0) {
-
+            $pass_hash = password_hash($password, PASSWORD_DEFAULT);      
+            $username_lowercase = strtolower($username);
+            $email_lowercase = strtolower($email);
+            $result_username = $conn->query("SELECT * FROM Accounts WHERE LOWER(Username)='$username_lowercase'");
+            $result_email = $conn->query("SELECT * FROM Accounts WHERE LOWER(email)='$email_lowercase'");
+            if ($result_username->num_rows == 0) {
+                if($result_email->num_rows == 0){
+                    
                 //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
-                $register_stmt = $conn->prepare("INSERT INTO users (username, password, email, firstname, lastname) VALUES (?, ?, ?, ?, ?)");
-                $register_stmt->bind_param("sssss", $user, $pass_hash, $email, $firstname, $lastname);
-                try {
-                    if ($register_stmt->execute() === true) {
-                        $stmt = mysqli_prepare($conn, "SELECT id FROM users WHERE username = ?");
-                        mysqli_stmt_bind_param($stmt, "s", $_POST["username"]);
-                        mysqli_stmt_execute($stmt);
-                        $result = mysqli_stmt_get_result($stmt);
-                        
-                        $_SESSION['username'] = $_POST["username"];
-                        $_SESSION['password'] = $_POST["password"];
-                        $_SESSION['email'] = $_POST['email'];
-                        $_SESSION['id'] = $row['id'];
-                        $_SESSION['firstname'] = $_POST['firstname'];
-                        $_SESSION['lastname'] = $_POST['lastname'];
+                $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age) VALUES (?, ?, ?, ?)");
+                $register_users->bind_param('ssss', $firstname, $lastname, $phone_number, $age);
+                $register_users->execute();
+
+                $user_id = $register_users->insert_id;
+                $register_account = $conn->prepare("INSERT INTO Accounts (username, password, email, UserID) VALUES (?, ?, ?, ?)");
+                $register_account->bind_param("sssi", $username, $pass_hash, $email, $user_id);
                 
+                    if ($register_account->execute() === true) {
                         header("Location: login.php");
                     } else {
-                        echo "Error: " . $conn->error;
-                    }
-                } catch (\Throwable $th) {
-                    echo "Error: " . $th->getMessage();
+                            echo "Error: " . $conn->error;
+                    }  
+
+                }else{
+                    echo "Email is already in use!";
                 }
+                
             } else {
-                echo "Username already in use!";
+                echo "Username is already in use!";
             }
         }
     } else {

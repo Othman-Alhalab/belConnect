@@ -27,7 +27,9 @@
 		input[type="text"],
 		input[type="password"],
 		input[type="number"],
-		input[type="email"] {
+		input[type="email"],
+		input[type="tel"],
+		input[type="date"]  {
 			padding: 5px;
 			width: 200px;
 			border: 1px solid #ccc;
