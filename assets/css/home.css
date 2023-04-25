@@ -45,30 +45,35 @@ body {
 }
 
 .tag {
-    display: inline-block;
-    padding: 2px 5px;
-    border: 1px solid #ccc;
-    margin-right: 5px;
+  display: inline-block;
+  padding: 2px 5px;
+  border: 1px solid #ccc;
+  margin-right: 5px;
 }
+
 .tag.programming {
-    background-color: #8f72c6;
-    color: #fff;
+  background-color: #8f72c6;
+  color: #fff;
 }
+
 .tag.food {
-    background-color: #ffba69;
-    color: #fff;
+  background-color: #ffba69;
+  color: #fff;
 }
+
 .tag.art {
-    background-color: #f29e4c;
-    color: #fff;
+  background-color: #f29e4c;
+  color: #fff;
 }
+
 .tag.music {
-    background-color: #7ac1a9;
-    color: #fff;
+  background-color: #7ac1a9;
+  color: #fff;
 }
+
 .tag.other {
-    background-color: #d3d3d3;
-    color: #000;
+  background-color: #d3d3d3;
+  color: #000;
 }
 
 /* Navbar */

@@ -45,10 +45,10 @@
 
             <select name="tags" id="tags">  
                 <option value="Select" name="select_tag">select tag</option> 
-                <option value="food" name="food">food</option>
-                <option value="art" name="art">art</option>
-                <option value="music" name="music">music</option>
-                <option value="other" name="other">other</optison>
+                <option value="Food" name="Food">food</option>
+                <option value="Art" name="Art">art</option>
+                <option value="Music" name="Music">music</option>
+                <option value="Other" name="Other">other</optison>
             </select>
 
         </div>
@@ -75,16 +75,49 @@
             $Author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['Username'];
             $tag = $_POST['tags'];
             $user_id = $_SESSION['UserID'];
+            
+            
+                function setTag($tag){
+                    switch ($tag) {
+                    case 'Programing':
+                        return 1;
+    
+                    case 'Food':
+                        return 2;
+    
+                    case 'Art':
+                        return 3;
+    
+                    case 'Music':
+                        return 4;
+    
+                    case 'Other':
+                        return 5;
+    
+                    }
+                }
+                
+            
+
             if($tag != "Select"){
                 
+                /*
                 $stmt_tag = $conn->prepare("INSERT INTO Tags (Tags) VALUES (?)");
                 $stmt_tag->bind_param('s', $tag);
                 $stmt_tag->execute();
                 $tag_id = $conn->insert_id;
+                */
                 
-                $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Username, Title, Content, TagID) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('issssi', $user_id, $Author, $username ,$Title, $Content, $tag_id);
+                $tagV = setTag($tag);
+                if($tag != null){
+                    $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Title, Content, TagID) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->bind_param('isssi', $user_id, $Author ,$Title, $Content, $tag);
+                }else{
+                    echo "<script>console.log('Debug Objects: " . "issue" . "' );</script>";
+                }
+
                 
+
                 if($stmt->execute() === TRUE){
                     echo "POST UPLOADED";
                     header('Location: post.php');
@@ -140,23 +173,33 @@
         }
 
         //visar posts som finns
-        $getPost_stamt = $conn -> prepare("SELECT * FROM Posts WHERE Username =? ORDER BY created_at DESC");
-        $getPost_stamt->bind_param('s', $_SESSION['Username']);
+        $getPost_stamt = $conn -> prepare("SELECT * FROM Posts WHERE UserID =? ORDER BY created_at DESC");
+        $getPost_stamt->bind_param('s', $_SESSION['UserID']);
         $getPost_stamt->execute();
         $results = $getPost_stamt->get_result();
+        
         while ($row = $results->fetch_assoc()) {
+            
+            /*
             $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
             $getPost_stamt->bind_param('s', $row['TagID']);
             $getPost_stamt->execute();
             $res =$getPost_stamt->get_result();
             $TagDATA = $res->fetch_assoc();
+*/
+            
             echo '<div class="post-container">';
             echo '<div class="post-header">' . $row['Title'] . '</div>';
             echo '<div class="post-meta">By ' . $row['Author'] . " (you)". ' on ' . $row['Created_at'] . '</div>';
             echo '<div class="post-content">' . $row['Content'] . '</div>';
 
+            $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
+            $getPost_stamt->bind_param('s', $row['TagID']);
+            $getPost_stamt->execute();
+            $res =$getPost_stamt->get_result();
+            $TagDATA = $res->fetch_assoc();
             // Display the tags for the post
-            $tags = explode(',', $TagDATA['Tags']);
+            $tags = explode(',', $TagDATA['Tagname']);
             echo '<div class="post-tags">';
             foreach($tags as $tag) {
                 echo '<span class="tag ' . $tag . '">' . $tag . '</span>';
