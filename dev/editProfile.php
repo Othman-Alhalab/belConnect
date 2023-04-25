@@ -99,11 +99,11 @@
 				$confirmPass = $_POST['confirm_password'];
 				$user_id = $_SESSION['UserID']; 
 
+				$hashed_pass = password_hash($oldPass, PASSWORD_DEFAULT);
 				//Kollar att det gammla lösenordet inte är samma som det nya.    $oldPass == $userDbPass
 				if($confirmPass === $newPass){
-					if(password_verify($newPass, $userDbPass)){
-						if($oldPass != $userDbPass){
-							$hashed_pass = password_hash($newPass, PASSWORD_DEFAULT);
+					if(password_verify($oldPass, $userDbPass)){
+						if(!password_verify($newPass, $userDbPass)){
 							$pass_stamt = $conn->prepare("UPDATE Accounts SET Password=? WHERE UserID=?");
 							$pass_stamt->bind_param("si", $hashed_pass, $_SESSION['UserID']);
 							if ($pass_stamt->execute()) {
@@ -140,8 +140,8 @@
 						$img_data = file_get_contents($tmp_name);
 						$img_type = $_FILES['my_image']['type'];
 					
-						$stmt = $conn->prepare("UPDATE users SET image_data = ?, image_type = ? WHERE id = ?");
-						$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['id']);	
+						$stmt = $conn->prepare("UPDATE Accounts SET image_data = ?, image_type = ? WHERE UserID = ?");
+						$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['UserID']);	
 						$stmt->execute();
 						$error_change_profile_picture = "Your profile picture has successfully been updated!";
 	
@@ -154,26 +154,22 @@
 		
 			
 		}elseif($tabname == "security_and_privacy"){
-			$question = $_POST['question'];
-			$answer = $_POST['answer'];
-			$tru = true;
-			
 			$stmt = $conn->prepare("SELECT * FROM user_secret_questions");		
 			$stmt->execute();
 			$stmt->store_result();
 			
 			if($stmt->num_rows == 0){
-				if(!empty($answer)){
-					$register_answer = $conn->prepare("INSERT INTO user_secret_questions (active_status, user_id, question, answer) VALUES (?, ?, ?, ?)");
-					$register_answer->bind_param("ssss", $tru, $_SESSION['id'], $question, $answer);
+				if(empty($answer)){
+					$register_answer = $conn->prepare("INSERT INTO user_secret_questions ( UserID, Question, Answer) VALUES (?, ?, ?)");
+					$register_answer->bind_param("sss", $_SESSION['UserID'], $_POST['question'], $_POST['answer']);
 					if($register_answer -> execute() === true){
 						$error_2fa = "A secret question has been set!";
 						$_SESSION['secret'] = true;
 					}
-				}
-				else{
+				}else{
 					$error_2fa = "Enter your answer and press sumbit";
 				}
+				
 			}
 			else{
 				$error_2fa = "you already have a secret question set!";
