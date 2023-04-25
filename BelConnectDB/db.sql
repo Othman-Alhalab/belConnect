@@ -3,42 +3,43 @@ Create database BelConnectDB;
 use BelConnectDB;
 
 Create table IF NOT exists Users(
-    UserID int primary key auto_increment,
-    Firstname VARCHAR(255),
-    Lastname VARCHAR(255),
-    Phone_number int not null,
-    age int not null
+	UserID int primary key auto_increment,
+	Firstname varchar (200),
+	Lastname varchar (200),
+	Phone_number int not null,
+	age int not null
 );
 
-CREATE TABLE IF NOT EXISTS Accounts (
-    UserID INT NOT NULL,
-    Username VARCHAR(255) PRIMARY KEY,
-    Password VARCHAR(255),
-    RegistrationDate DATETIME DEFAULT current_timestamp,
-    Email varchar(200),
-    image_type VARCHAR(255),
-    image_data LONGBLOB,
-    UNIQUE INDEX (Username)
+Create table IF NOT exists accounts (
+	AccountsID int primary key auto_increment,
+	UserID int,
+	Username varchar(200),
+	Password varchar(200),
+	Email varchar(200),
+	image_type VARCHAR(255),
+	image_data LONGBLOB,
+	RegistrationDate DATETIME DEFAULT current_timestamp,
+	FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+
 
 Create table if not exists Tags(
-    TagID int primary key auto_increment,
-    Tags varchar(255) NOT NULL
+TagID int primary key auto_increment,
+Tagname varchar(200)
 );
 
-Create table if not exists Posts (
-    PostId int primary key auto_increment,
-    UserID INT NOT NULL,
-    Author VARCHAR(255) NOT NULL,
-    Username VARCHAR(255) NOT NULL,
-    Title VARCHAR(255) NOT NULL,
-    Content TEXT NOT NULL,
-    TagID INT,
-    Created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID),
-    FOREIGN KEY (TagID) REFERENCES Tags(TagID)
+Create table if not exists posts (
+  PostId int primary key auto_increment,
+  Author VARCHAR(255) NOT NULL,
+  UserID int,
+  Title VARCHAR(255) NOT NULL,
+  Content TEXT NOT NULL,
+  TagID int NOT NULL,
+  Created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (UserID) references Users(UserID),
+  FOREIGN KEY (TagID) REFERENCES Tags(TagID)
 );
-
 
 CREATE TABLE user_secret_questions (
     user_secret_questions_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -47,3 +48,11 @@ CREATE TABLE user_secret_questions (
     Answer VARCHAR(255) NOT NULL,
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+
+
+insert into Tags ( Tagname) values
+("Programing"),
+("Food"),
+("Art"),
+("Music"),
+("Other");
