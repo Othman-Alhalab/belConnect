@@ -10,12 +10,12 @@
             if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 if($_SESSION['delAccount'] == "finduser"){
                     if(isset($_POST['question']) && $_POST['answer']){
-                        $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions WHERE user_id=?");	
-                        $info_stamt->bind_param('i', $_SESSION['id']);
+                        $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions WHERE UserID=?");	
+                        $info_stamt->bind_param('i', $_SESSION['UserID']);
                         $info_stamt->execute();
                         $results = $info_stamt->get_result();
                         while($table = $results->fetch_assoc()){
-                            if(strtolower($table['question']) === strtolower($_POST['question']) && strtolower($table['answer']) === strtolower($_POST['answer'])){
+                            if(strtolower($table['Question']) === strtolower($_POST['question']) && strtolower($table['Answer']) === strtolower($_POST['answer'])){
                                 $_SESSION['delAccount'] = "founduser";
                                 $errormsg = "dsa";
                             }else{
@@ -27,24 +27,41 @@
                     }
                 }else if($_SESSION['delAccount'] == "founduser"){
                     if(isset($_POST['password']) && isset($_POST['username'])){
-                        $findInfo = $conn->prepare('SELECT * FROM users WHERE username=?');
+                        $findInfo = $conn->prepare('SELECT * FROM Accounts WHERE Username=?');
                         $findInfo->bind_param('s', $_POST['username']);
                         $findInfo->execute();
                         $results = $findInfo->get_result();
                         while($table = $results->fetch_assoc()){
-                          if(password_verify($_POST['password'], $table['password']) && $_SESSION['id'] == $table['id'] && strtolower($_POST['username']) === strtolower($table['username'])){
+                          if(password_verify($_POST['password'], $table['Password']) && $_SESSION['UserID'] == $table['UserID'] && strtolower($_POST['username']) === strtolower($table['Username'])){
                             
-                            $delAcc = $conn->prepare('DELETE FROM user_secret_questions WHERE user_id=?;');
-                            $delAcc->bind_param('i', $table['id']);
+                            
+                            $delAcc = $conn->prepare('SELECT * FROM Posts WHERE UserID=?');
+                            $delAcc->bind_param('i', $table['UserID']);
+                            $delAcc->execute();
+                            $delAcc = $info_stamt->get_result();
+                            while($post_tag = $delAcc->fetch_assoc()){
+                                $delAcc = $conn->prepare('DELETE FROM Tags WHERE TagID=?;');
+                                $delAcc->bind_param('i', $$post_tag['TagID']);
+                                $delAcc->execute();
+                            }
+
+
+                            $delAcc = $conn->prepare('DELETE FROM user_secret_questions WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
                             
-                            $delAcc = $conn->prepare('DELETE FROM users WHERE id=?;');
-                            $delAcc->bind_param('i', $table['id']);
+                            $delAcc = $conn->prepare('DELETE FROM Users WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
 
-                            $delAcc = $conn->prepare('DELETE FROM posts WHERE id=?;');
-                            $delAcc->bind_param('i', $table['id']);
+                            $delAcc = $conn->prepare('DELETE FROM Accounts WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
+
+                            $delAcc = $conn->prepare('DELETE FROM Posts WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
+                            $delAcc->execute();
+
                             header("Location: logout.php"); 
                           }else{
                             echo "wrong password";

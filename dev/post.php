@@ -42,20 +42,15 @@
         <br>
         <label>Tags:</label>
         <div class="checkbox-container">
-            <input type="checkbox" name="tags[]" value="programming" id="programming-tag">
-            <label for="programming-tag">Programming</label>
 
-            <input type="checkbox" name="tags[]" value="food" id="food-tag">
-            <label for="food-tag">Food</label>
+            <select name="tags" id="tags">  
+                <option value="Select" name="select_tag">select tag</option> 
+                <option value="food" name="food">food</option>
+                <option value="art" name="art">art</option>
+                <option value="music" name="music">music</option>
+                <option value="other" name="other">other</optison>
+            </select>
 
-            <input type="checkbox" name="tags[]" value="art" id="art-tag">
-            <label for="art-tag">Art</label>
-
-            <input type="checkbox" name="tags[]" value="music" id="music-tag">
-            <label for="music-tag">Music</label>
-
-            <input type="checkbox" name="tags[]" value="other" id="other-tag">
-            <label for="other-tag">Other</label>
         </div>
         <br>
         <p><?php echo $error_msg ?></p>
@@ -78,20 +73,24 @@
             $Title = strip_tags($_POST['post-name']);
             $Content = strip_tags($_POST['post-data']);
             $Author = isset($_POST['anonymous']) ? "Anonymous" : $_SESSION['Username'];
-            $tags = implode(',', $_POST['tags']);
+            $tag = $_POST['tags'];
             $user_id = $_SESSION['UserID'];
-            
-            $stmt_tag = $conn->prepare("INSERT INTO Tags (Tags) VALUES (?)");
-            $stmt_tag->bind_param('s', $tags);
-            $stmt_tag->execute();
-            $tag_id = $conn->insert_id;
-            
-            $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Username, Title, Content, TagID) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('issssi', $user_id, $Author, $username ,$Title, $Content, $tag_id);
-            
-            if($stmt->execute() === TRUE){
-                echo "POST UPLOADED";
-                header('Location: post.php');
+            if($tag != "Select"){
+                
+                $stmt_tag = $conn->prepare("INSERT INTO Tags (Tags) VALUES (?)");
+                $stmt_tag->bind_param('s', $tag);
+                $stmt_tag->execute();
+                $tag_id = $conn->insert_id;
+                
+                $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Username, Title, Content, TagID) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param('issssi', $user_id, $Author, $username ,$Title, $Content, $tag_id);
+                
+                if($stmt->execute() === TRUE){
+                    echo "POST UPLOADED";
+                    header('Location: post.php');
+                }
+            }else{
+                $error_msg = "Please select a tag!";
             }
          }else{
             $error_msg = "Please fill out all fileds.";

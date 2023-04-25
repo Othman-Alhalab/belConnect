@@ -51,15 +51,15 @@
                     <h1 style="text-align:center; margin-top:50px;">Welcome, ' . $usr . "!" .'</h1>
                     <form method="POST" id="filter-form" style="text-align:center">
                         <h3>Filter posts by tag:</h3>
-                        <div id="tags-container">';
-                
+                        <select id="tags-container">';
+
                 //skriver ut alla tags
                 foreach ($tags as $tag) {
                     $checked = in_array($tag, $selected_tags) ? "checked" : "";
-                    echo '<label><input type="checkbox" name="tags[]" value="' . $tag . '" ' . $checked . '> ' . ucfirst($tag) . '</label><br>';
+                    echo "<option value=".$tag.">$tag</option>";
                 }
                 echo '
-                        </div>
+                        </select>  
                         <button type="submit">Filter</button>
                         </form>
                         <div id="feed">';

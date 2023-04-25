@@ -18,10 +18,11 @@
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
-
-        if ($result->num_rows == 1) {
+        
+        if ($result->num_rows) {
             $row = $result->fetch_assoc();
             $hashed_password = $row['Password'];
+            
             if (password_verify($password, $hashed_password)) {
 
 
