@@ -31,6 +31,7 @@
                         $findInfo->bind_param('s', $_POST['username']);
                         $findInfo->execute();
                         $results = $findInfo->get_result();
+                        /*
                         while($table = $results->fetch_assoc()){
                           if(password_verify($_POST['password'], $table['Password']) && $_SESSION['UserID'] == $table['UserID'] && strtolower($_POST['username']) === strtolower($table['Username'])){
                             
@@ -39,9 +40,10 @@
                             $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
                             $delAcc = $info_stamt->get_result();
-                            while($post_tag = $delAcc->fetch_assoc()){
+                            $post_tag = $delAcc->fetch_assoc();
+                            foreach($post_tag as $tags_data){
                                 $delAcc = $conn->prepare('DELETE FROM Tags WHERE TagID=?;');
-                                $delAcc->bind_param('i', $$post_tag['TagID']);
+                                $delAcc->bind_param('i', $tags_data);
                                 $delAcc->execute();
                             }
 
@@ -67,7 +69,7 @@
                             echo "wrong password";
                           }
                         }
-
+                        */
                     }
                 }
             }
