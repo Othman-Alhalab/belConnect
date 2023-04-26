@@ -31,6 +31,7 @@
                         $findInfo->bind_param('s', $_POST['username']);
                         $findInfo->execute();
                         $results = $findInfo->get_result();
+                        
                         /*
                         while($table = $results->fetch_assoc()){
                           if(password_verify($_POST['password'], $table['Password']) && $_SESSION['UserID'] == $table['UserID'] && strtolower($_POST['username']) === strtolower($table['Username'])){

@@ -21,17 +21,24 @@ Create table IF NOT exists accounts (
 	RegistrationDate DATETIME DEFAULT current_timestamp,
 	FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
-
-
+DROP table tagS;
 Create table if not exists Tags(
 TagID int primary key auto_increment,
 Tagname varchar(200)
 );
 
+
+insert into Tags ( Tagname) values
+("Programing"),
+("Food"),
+("Art"),
+("Music"),
+("Other");
+DROP TABLE POSTS;
 Create table if not exists posts (
   PostId int primary key auto_increment,
-  Author VARCHAR(255) NOT NULL,
   UserID int,
+  Author VARCHAR(255) NOT NULL,
   Title VARCHAR(255) NOT NULL,
   Content TEXT NOT NULL,
   TagID int NOT NULL,
@@ -49,10 +56,19 @@ CREATE TABLE user_secret_questions (
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
+CREATE TABLE Profile_pic(
+	Profile_picID int primary key auto_increment,
+	UserID int,
+	image_type VARCHAR(255),
+	image_data LONGBLOB,
+	FOREIGN KEY (UserID) REFERENCES Users (UserID)
+);
 
-insert into Tags ( Tagname) values
-("Programing"),
-("Food"),
-("Art"),
-("Music"),
-("Other");
+Create table Post_Pic(
+	Post_picID int primary key auto_increment,
+	PostID int,
+	image_type VARCHAR(255),
+	image_data LONGBLOB
+);
+
+

@@ -23,7 +23,7 @@
 
             <?php
                 $usr = $_SESSION['Username'];
-                $tags = array("Other", "Food", "Art", "Programming", "Music");
+                $tags = array("Other", "Food", "Art", "Programming", "Music", "ALL POSTS");
                 // Check if the form was submitted
 
                 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -36,10 +36,14 @@
                 // Build the WHERE clause for the tags
                 $where_clause = "";
                 foreach ($selected_tags as $tag) {
-                    if ($where_clause == "") {
-                        $where_clause = "WHERE Tagname = '$tag'";
-                    } else {
-                        $where_clause .= " OR Tagname = '$tag'";
+                    if($tag === "ALL POSTS"){
+                        $where_clause = "";
+                    }else{
+                        if ($where_clause == "") {
+                            $where_clause = "WHERE Tagname = '$tag'";
+                        } else {
+                            $where_clause .= " OR Tagname = '$tag'";
+                        }
                     }
                 }
                 //$stmt = $conn->prepare("SELECT * FROM Posts $where_clause ORDER BY created_at DESC");
@@ -132,6 +136,7 @@
             // Display the tags for the post
             $tags = explode(',', $TagDATA['Tagname']);
             echo '<div class="post-tags">';
+            
             foreach($tags as $tag) {
                 echo '<span class="tag ' . $tag . '">' . ucfirst($tag) . '</span>';
             }

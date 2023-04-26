@@ -34,6 +34,7 @@
                 $_SESSION['Firstname'] = $row['Firstname'];
                 $_SESSION['Lastname'] = $row['Lastname'];
                 $_SESSION['Phone_number'] = $row['Phone_number'];
+                
                 header("Location: home.php");
             } else {
                 $errormsg = "Invalid username or password";

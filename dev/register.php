@@ -158,6 +158,7 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
                 $register_users->execute();
 
                 $user_id = $register_users->insert_id;
+                
                 $register_account = $conn->prepare("INSERT INTO Accounts (username, password, email, UserID) VALUES (?, ?, ?, ?)");
                 $register_account->bind_param("sssi", $username, $pass_hash, $email, $user_id);
                 
@@ -180,7 +181,7 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
     }
     
     
-
+edWo#IN
     mysqli_close($conn);
 }
 

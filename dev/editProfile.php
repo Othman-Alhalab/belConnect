@@ -307,7 +307,6 @@
 		//då sätt "tabname_in" till "personal_info"
 		//regex från stackoverflow
 		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
-
 		
 		function selectTab(tabname){
 			switch (tabname) {

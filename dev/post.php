@@ -111,15 +111,14 @@
                 $tagV = setTag($tag);
                 if($tag != null){
                     $stmt = $conn->prepare("INSERT INTO Posts (UserID, Author, Title, Content, TagID) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->bind_param('isssi', $user_id, $Author ,$Title, $Content, $tag);
+                    $stmt->bind_param('isssi', $user_id, $Author ,$Title, $Content, $tagV);
                 }else{
                     echo "<script>console.log('Debug Objects: " . "issue" . "' );</script>";
                 }
 
                 
 
-                if($stmt->execute() === TRUE){
-                    echo "POST UPLOADED";
+                if($stmt->execute()){
                     header('Location: post.php');
                 }
             }else{
