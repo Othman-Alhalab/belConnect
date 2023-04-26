@@ -7,21 +7,14 @@ Create table IF NOT exists Users(
 	Firstname varchar (200),
 	Lastname varchar (200),
 	Phone_number int not null,
-	age int not null
+	age int not null,
+    Username varchar(200),
+	Password varchar(200),
+    Email varchar(200),
+    RegistrationDate DATETIME DEFAULT current_timestamp
 );
 
-Create table IF NOT exists accounts (
-	AccountsID int primary key auto_increment,
-	UserID int,
-	Username varchar(200),
-	Password varchar(200),
-	Email varchar(200),
-	image_type VARCHAR(255),
-	image_data LONGBLOB,
-	RegistrationDate DATETIME DEFAULT current_timestamp,
-	FOREIGN KEY (UserID) REFERENCES Users(UserID)
-);
-DROP table tagS;
+
 Create table if not exists Tags(
 TagID int primary key auto_increment,
 Tagname varchar(200)
@@ -34,14 +27,16 @@ insert into Tags ( Tagname) values
 ("Art"),
 ("Music"),
 ("Other");
-DROP TABLE POSTS;
+
+
+
 Create table if not exists posts (
   PostId int primary key auto_increment,
   UserID int,
-  Author VARCHAR(255) NOT NULL,
   Title VARCHAR(255) NOT NULL,
   Content TEXT NOT NULL,
   TagID int NOT NULL,
+  Anonymous Boolean NOT NULL,
   Created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (UserID) references Users(UserID),
