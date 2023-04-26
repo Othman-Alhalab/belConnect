@@ -11,12 +11,10 @@
 <?php
 	require "config.php";
 		
-	
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		//$msg = "sds";
 
 		$tabname = $_COOKIE["tabname"];
-		$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 		if($tabname == "personal_info"){
 			$firstname = $_POST['first_name'];
 			$lastname = $_POST['last_name'];
@@ -28,28 +26,18 @@
 				$username_lowercase = strtolower($username);
 				
 				if($_POST['username'] != $_SESSION['Username']){
-					$result = $conn->prepare("SELECT * FROM Accounts WHERE LOWER(Username)=?");
+					$result = $conn->prepare("SELECT * FROM Users WHERE LOWER(Username)=?");
 					$result->bind_param('s', $username_lowercase);
 					$result->execute();
 					$result->store_result();
 
-					if ($result->num_rows == 0) {
-
-						$stmt_account = $conn -> prepare("UPDATE Accounts SET Username=?, Email=? WHERE UserID=?");
-						$stmt_account->bind_param('ssi', $_POST['username'], $_POST['email'], $_SESSION['UserID']);
-
-						
-						$stmt_users = $conn ->prepare("UPDATE Users SET Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
-						$stmt_users->bind_param('ssii', $_POST['first_name'], $_POST['last_name'], $_POST['Phone_number'], $_SESSION['UserID']);
+					if ($result->num_rows == 0) {			
+						$stmt_users = $conn ->prepare("UPDATE Users SET Username=? WHERE UserID=?");
+						$stmt_users->bind_param('si',$_POST['username'], $_SESSION['UserID']);
 
 						
-						if ($stmt_users->execute() && $stmt_account->execute()) {
+						if ($stmt_users->execute()) {
 							$_SESSION['Username'] = $_POST['username'];
-							$_SESSION['Email'] = $_POST['email'];
-							$_SESSION['Firstname'] = $_POST['first_name'];
-							$_SESSION['Lastname'] = $_POST['last_name'];
-							$_SESSION['Phone_number'] = $_POST['Phone_number'];
-							//$msg = "saved changes!";
 							$error_personal_info = "saved changes!";
 							
 						} else {
@@ -62,13 +50,10 @@
 					}
 				}else{
 					//$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
-					$stmt_users = $conn -> prepare("UPDATE Users SET Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
-					$stmt_users->bind_param('ssii', $firstname, $lastname, $Phone_number, $_SESSION['UserID']);
+					$stmt_users = $conn -> prepare("UPDATE Users SET Username=?, Email=?, Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
+					$stmt_users->bind_param('ssssii', $username, $email, $firstname, $lastname, $Phone_number, $_SESSION['UserID']);
 
-					$stmt_account = $conn -> prepare("UPDATE Accounts SET Username=?, Email=? WHERE UserID=?");
-					$stmt_account->bind_param('ssi', $username, $email, $_SESSION['UserID']);
-
-					if ($stmt_users->execute() && $stmt_account->execute()) {
+					if ($stmt_users->execute()) {
 						$_SESSION['Username'] = $_POST['username'];
 						$_SESSION['Email'] = $_POST['email'];
 						$_SESSION['Firstname'] = $_POST['first_name'];
@@ -76,7 +61,6 @@
 						$_SESSION['Phone_number'] = $_POST['Phone_number'];
 						//$msg = "saved changes!";
 						$error_personal_info = "saved changes!";
-						$stmt_account->close();
 							$stmt_users ->close();
 					} else {
 						$error_personal_info = "Error: " . $conn->error;
@@ -122,9 +106,6 @@
 
 				}else{
 					$error_pass =  "The passwords do not match!";
-					echo $confirmPass ."                                   ";
-					
-					echo $newPass;
 				}
 			}else{
 				$error_pass =  "fill in all fields";
@@ -140,7 +121,7 @@
 						$img_data = file_get_contents($tmp_name);
 						$img_type = $_FILES['my_image']['type'];
 					
-						$stmt = $conn->prepare("UPDATE Accounts SET image_data = ?, image_type = ? WHERE UserID = ?");
+						$stmt = $conn->prepare("UPDATE Profile_pic SET image_data = ?, image_type = ? WHERE UserID = ?");
 						$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['UserID']);	
 						$stmt->execute();
 						$error_change_profile_picture = "Your profile picture has successfully been updated!";

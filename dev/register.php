@@ -135,7 +135,7 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
         die("Connection failed: " . mysqli_connect_error());
     }
 
-    $user_reg_stmt = $conn->prepare("SELECT * FROM Accounts WHERE Username=?");
+    $user_reg_stmt = $conn->prepare("SELECT * FROM Users WHERE Username=?");
     $user_reg_stmt->bind_param('s', $username);
     $user_reg_stmt->execute();
     $result = mysqli_num_rows(mysqli_stmt_get_result($user_reg_stmt));
@@ -147,22 +147,22 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
             $pass_hash = password_hash($password, PASSWORD_DEFAULT);      
             $username_lowercase = strtolower($username);
             $email_lowercase = strtolower($email);
-            $result_username = $conn->query("SELECT * FROM Accounts WHERE LOWER(Username)='$username_lowercase'");
-            $result_email = $conn->query("SELECT * FROM Accounts WHERE LOWER(email)='$email_lowercase'");
+            $result_username = $conn->query("SELECT * FROM Users WHERE LOWER(Username)='$username_lowercase'");
+            $result_email = $conn->query("SELECT * FROM Users WHERE LOWER(email)='$email_lowercase'");
             if ($result_username->num_rows == 0) {
                 if($result_email->num_rows == 0){
                     
                 //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
-                $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age) VALUES (?, ?, ?, ?)");
-                $register_users->bind_param('ssss', $firstname, $lastname, $phone_number, $age);
+                $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
                 $register_users->execute();
 
                 $user_id = $register_users->insert_id;
                 
-                $register_account = $conn->prepare("INSERT INTO Accounts (username, password, email, UserID) VALUES (?, ?, ?, ?)");
-                $register_account->bind_param("sssi", $username, $pass_hash, $email, $user_id);
+                $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
+                $create_pic->bind_param('i',$user_id);
                 
-                    if ($register_account->execute() === true) {
+                    if ($create_pic->execute()) {
                         header("Location: login.php");
                     } else {
                             echo "Error: " . $conn->error;
@@ -181,7 +181,7 @@ if (isset($_POST["username"]) && isset($_POST["password"])) {
     }
     
     
-edWo#IN
+
     mysqli_close($conn);
 }
 

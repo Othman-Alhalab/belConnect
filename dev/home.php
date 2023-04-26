@@ -69,7 +69,7 @@
             echo '<h2>All posts</h2>';
                    
 
-                $profile_picture_query = "SELECT * FROM Accounts";
+                $profile_picture_query = "SELECT * FROM Profile_pic";
                 $pic_res = $conn->query($profile_picture_query);
                 $profile_pictures = [];
 
@@ -86,38 +86,29 @@
                     }
                 }
 
-                //$stmt = $conn->prepare("SELECT * FROM Posts $where_clause ORDER BY created_at DESC");
                 echo $where_clause;
                 echo "<br>";
                 $stmt = $conn->prepare("SELECT * FROM posts JOIN Tags ON posts.TagID = Tags.TagID $where_clause ORDER BY Created_at DESC");
                 $stmt->execute();
                 $result = $stmt->get_result();
-                //$sql = "SELECT * FROM posts $where_clause ORDER BY created_at DESC";
-                //$result = $conn->query($sql);
                 
                 // Loopar igenom posts
                 $getPost_stamt = $conn -> prepare("SELECT * FROM posts JOIN Tags ON posts.TagID = Tags.TagID $where_clause ORDER BY Created_at DESC");
-                //$getPost_stamt->bind_param('s', $_SESSION['UserID']);
                 $getPost_stamt->execute();
                 $results = $getPost_stamt->get_result();
         
         //skriver ut alla inlägg
         while ($row = $results->fetch_assoc()) {
             
-            /*
-            $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
-            $getPost_stamt->bind_param('s', $row['TagID']);
-            $getPost_stamt->execute();
-            $res =$getPost_stamt->get_result();
-            $TagDATA = $res->fetch_assoc();
-*/
+            //Kolla om "Anonymous mode" är på eller inte
+            $Author = $row['Anonymous'] ? "Anonymous" : $_SESSION['Username'];
             
             echo '<div class="post-container">';
             echo '<div class="post-header">' . $row['Title'] . '</div>';
-            echo '<div class="post-meta">By ' . $row['Author'] . " (you)". ' on ' . $row['Created_at'] . '</div>';
+            echo '<div class="post-meta">By ' . $Author . " (you)". ' on ' . $row['Created_at'] . '</div>';
             echo '<div class="post-content">' . $row['Content'] . '</div>';
 
-            if($row['Author'] === "Anonymous"){
+            if($Author === "Anonymous"){
                 echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
             }else{
 
@@ -135,6 +126,32 @@
             $TagDATA = $res->fetch_assoc();
             // Display the tags for the post
             $tags = explode(',', $TagDATA['Tagname']);
+            
+            $getPost_stamt = $conn->prepare("SELECT * FROM Post_Pic WHERE PostID = ?");
+            $getPost_stamt->bind_param('s', $row['PostId']);
+            $getPost_stamt->execute();
+            $res = $getPost_stamt->get_result();
+            $TagDATA = $res->fetch_assoc();
+            $post_pictures = [];
+
+            //laddar in bild för inlägget
+            while ($TagDATA) {
+                if (!empty($TagDATA['image_data'])) {
+                    $img_data = $TagDATA['image_data'];
+                    $img_type = $TagDATA['image_type'];
+                    $base64_image = base64_encode($img_data);
+                    $img_src = "data:$img_type;base64,$base64_image";
+                    $post_pictures[$TagDATA['Post_picID']] = $img_src;
+                }
+                $TagDATA = $res->fetch_assoc();
+            }
+
+            if (isset($post_pictures[$row['PostId']])) {
+                $img_src = $post_pictures[$row['PostId']];
+                echo '<img src="' . $img_src . '" width="250px" height="250px" style="margin-top: 18px; position: relative; left:98px; border-style: solid;">>';
+            }
+            //echo "<img src='../assets/default-profile-photo.jpg' width='250px' height='250px' style='margin-top: 18px; position: relative; left:98px; border-style: solid;'> ";
+
             echo '<div class="post-tags">';
             
             foreach($tags as $tag) {

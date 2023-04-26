@@ -14,8 +14,8 @@
     
         
         //Kollar för med databasen om det finns en användare med "username input"
-        $stmt = $conn->prepare("SELECT * FROM Accounts, Users WHERE Username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $conn->prepare("SELECT * FROM Users WHERE Username = ?");
+        $stmt->bind_param("s", $_POST['username']);
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -36,6 +36,8 @@
                 $_SESSION['Phone_number'] = $row['Phone_number'];
                 
                 header("Location: home.php");
+                echo $row['Firstname'];
+                echo $row['UserID'];
             } else {
                 $errormsg = "Invalid username or password";
             }
