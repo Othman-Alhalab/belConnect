@@ -143,23 +143,36 @@
 			}
 
 		}elseif($tabname == "change_profile_picture"){
+			$allowed = array("image/jpeg", "image/png");
 			try {
-				if(isset($_FILES['my_image'])){
-					$img_name = $_FILES['my_image']['name'];
-					$img_size = $_FILES['my_image']['size'];
-					$tmp_name = $_FILES['my_image']['tmp_name'];
+				
+				if($_FILES['my_image']['size'] < 1000000){
+					if(in_array($_FILES['my_image']['type'], $allowed)) {
+						if(isset($_FILES['my_image'])){
+							$img_name = $_FILES['my_image']['name'];
+							$img_size = $_FILES['my_image']['size'];
+							$tmp_name = $_FILES['my_image']['tmp_name'];
+			
+							$img_data = file_get_contents($tmp_name);
+							$img_type = $_FILES['my_image']['type'];
+							
+							$stmt = $conn->prepare("UPDATE Profile_pic SET image_data = ?, image_type = ? WHERE UserID = ?");
+							$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['UserID']);	
+							$stmt->execute();
+							$error_change_profile_picture = "Your profile picture has successfully been updated!";
+			
+						}else{
+							$error_change_profile_picture = "No image has been uploaded!";
+						}
 	
-						$img_data = file_get_contents($tmp_name);
-						$img_type = $_FILES['my_image']['type'];
-					
-						$stmt = $conn->prepare("UPDATE Profile_pic SET image_data = ?, image_type = ? WHERE UserID = ?");
-						$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['UserID']);	
-						$stmt->execute();
-						$error_change_profile_picture = "Your profile picture has successfully been updated!";
-	
+					}else{
+						$error_change_profile_picture = 'Only jpg and png files are allowed.';
+					}
 				}else{
-					$error_change_profile_picture = "No image has been uploaded!";
+					$error_change_profile_picture = 'No files larger then 1MB';
 				}
+
+				
 			} catch (\Throwable $th) {
 				$error_change_profile_picture = "No image was selected";
 			}
