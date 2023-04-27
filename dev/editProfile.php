@@ -10,6 +10,7 @@
             
 <?php
 	require "config.php";
+	require "./metoder.php";
 		
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
 		//$msg = "sds";
@@ -31,23 +32,43 @@
 					$result->execute();
 					$result->store_result();
 
-					if ($result->num_rows == 0) {			
-						$stmt_users = $conn ->prepare("UPDATE Users SET Username=? WHERE UserID=?");
-						$stmt_users->bind_param('si',$_POST['username'], $_SESSION['UserID']);
-
+					//alot of checks
+					if(!empty(trim($Phone_number)) && strlen(trim($Phone_number)) >= 6 && checkPhoneNumber(trim($Phone_number))){
+						if(inputTest($firstname) && inputTest($lastname)){
+							if(filter_var($email, FILTER_VALIDATE_EMAIL)){
+								if(testUsername($username) && strlen($username) >= 3){
+									if ($result->num_rows == 0) {			
+										$stmt_users = $conn ->prepare("UPDATE Users SET Username=? WHERE UserID=?");
+										$stmt_users->bind_param('si',$_POST['username'], $_SESSION['UserID']);
+				
+										
+										if ($stmt_users->execute()) {
+											$_SESSION['Username'] = $_POST['username'];
+											$error_personal_info = "saved changes!";
+											
+										} else {
+											$error_personal_info = "Error: " . $conn->error;
+										}
 						
-						if ($stmt_users->execute()) {
-							$_SESSION['Username'] = $_POST['username'];
-							$error_personal_info = "saved changes!";
-							
-						} else {
-							$error_personal_info = "Error: " . $conn->error;
+									} else {
+										//$msg = "Username already in use!";
+										$error_personal_info = "Username already in use!";
+									}
+								}else{
+									$error_personal_info = "username is to short (atleast 3 characters) or inclueds speical characters";
+								}
+							}else{
+								$error_personal_info = "please enter a vaild email";
+							}
+						}else{
+							$error_personal_info = "no speical characters (* | / | + | - | 1-9) etc in (first name, Last name, tel and username)";
 						}
-		
-					} else {
-						//$msg = "Username already in use!";
-						$error_personal_info = "Username already in use!";
+					}else{
+						$error_personal_info = "enter a vaild phone number (has to be longer then 6 numbers)";
 					}
+					
+					
+					
 				}else{
 					//$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
 					$stmt_users = $conn -> prepare("UPDATE Users SET Username=?, Email=?, Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
@@ -75,37 +96,47 @@
 				$error_personal_info = "fill in all fields";
 			}
 		}elseif($tabname == "change_password"){
+			$getCureentPass = $conn->prepare('SELECT Password FROM Users where UserID =?');
+			$getCureentPass->bind_param('s', $_SESSION['UserID']);
+			$getCureentPass->execute();
+			$res =$getCureentPass->get_result();
+            $UserPass = $res->fetch_assoc();
+
 			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
 			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
 				$oldPass = $_POST['current_password'];
-				$userDbPass = $_SESSION['Password'];
+				$userDbPass = $UserPass['Password'];
 				$newPass = $_POST['new_password'];
 				$confirmPass = $_POST['confirm_password'];
 				$user_id = $_SESSION['UserID']; 
 
-				$hashed_pass = password_hash($oldPass, PASSWORD_DEFAULT);
+				$hashed_pass = password_hash($newPass, PASSWORD_DEFAULT);
 				//Kollar att det gammla lösenordet inte är samma som det nya.    $oldPass == $userDbPass
-				if($confirmPass === $newPass){
-					if(password_verify($oldPass, $userDbPass)){
-						if(!password_verify($newPass, $userDbPass)){
-							$pass_stamt = $conn->prepare("UPDATE Accounts SET Password=? WHERE UserID=?");
-							$pass_stamt->bind_param("si", $hashed_pass, $_SESSION['UserID']);
-							if ($pass_stamt->execute()) {
-
-								$error_pass =  "The password was successfully changed!";	
+				if(strlen($newPass) >= 6){
+					if($confirmPass === $newPass){
+						if(password_verify($oldPass, $userDbPass)){
+							if(!password_verify($newPass, $userDbPass)){
+								$pass_stamt = $conn->prepare("UPDATE Users SET Password=? WHERE UserID=?");
+								$pass_stamt->bind_param("si", $hashed_pass, $_SESSION['UserID']);
+								if ($pass_stamt->execute()) {
+	
+									$error_pass =  "The password was successfully changed!";	
+								}else{
+									echo "Error: " . $conn->error;
+								}
 							}else{
-								echo "Error: " . $conn->error;
+								$error_pass = "You cannot have the same password as the current!";
+								
 							}
 						}else{
-							$error_pass = "You cannot have the same password as the current!";
-							
+							$error_pass = "Wrong password!";
 						}
+	
 					}else{
-						$error_pass = "Wrong password!";
+						$error_pass =  "The passwords do not match!";
 					}
-
 				}else{
-					$error_pass =  "The passwords do not match!";
+					$error_pass = "Your password has to be 6 characters or longer";
 				}
 			}else{
 				$error_pass =  "fill in all fields";
@@ -135,25 +166,23 @@
 		
 			
 		}elseif($tabname == "security_and_privacy"){
-			$stmt = $conn->prepare("SELECT * FROM user_secret_questions");		
+			$stmt = $conn->prepare("SELECT * FROM user_secret_questions");
 			$stmt->execute();
 			$stmt->store_result();
-			
-			if($stmt->num_rows == 0){
-				if(empty($answer)){
-					$register_answer = $conn->prepare("INSERT INTO user_secret_questions ( UserID, Question, Answer) VALUES (?, ?, ?)");
+
+			if ($stmt->num_rows < 0) {
+				$error_2fa = "You already have a secret question set!";
+			} else {
+				if (!empty($_POST['answer'])) {
+					$register_answer = $conn->prepare("INSERT INTO user_secret_questions (UserID, Question, Answer) VALUES (?, ?, ?)");
 					$register_answer->bind_param("sss", $_SESSION['UserID'], $_POST['question'], $_POST['answer']);
-					if($register_answer -> execute() === true){
+					if ($register_answer->execute() === true) {
 						$error_2fa = "A secret question has been set!";
 						$_SESSION['secret'] = true;
 					}
-				}else{
-					$error_2fa = "Enter your answer and press sumbit";
+				} else {
+					$error_2fa = "Enter your answer and press submit";
 				}
-				
-			}
-			else{
-				$error_2fa = "you already have a secret question set!";
 			}
 		}
 
@@ -249,7 +278,8 @@
 	
 	<form action="" method="post" id="security_and_privacy">
 	<?php 
-		$info_stamt = $conn->prepare("SELECT * FROM user_secret_questions");
+		$info_stamt = $conn->prepare("SELECT * FROM user_secret_questions WHERE UserID = ?");
+		$info_stamt->bind_param('s', $_SESSION['UserID']);
 		$info_stamt->execute();
 		$info_stamt->store_result();
 		

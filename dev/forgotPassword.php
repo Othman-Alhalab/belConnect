@@ -15,21 +15,28 @@
     }
     
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
-       if($_SESSION['page'] === "finduser"){ 
+       
+        if($_SESSION['page'] === "finduser"){ 
             $_SESSION['email'] = $_POST['email'];
             $question = $_POST['question'];
             $answer = $_POST['answer'];
 
             if(!empty($_POST['email']) && isset($_POST['question']) && !empty($_POST['answer'])){
-                $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions, users WHERE email=?");	
-                $info_stamt->bind_param("s", $_SESSION['email']);
+                $getmail = $conn->prepare('SELECT * FROM Users where Email=?');
+                $getmail->bind_param('s',$_POST['email']);
+                $getmail->execute();
+                $res = $getmail ->get_result();
+                $USER = $res->fetch_assoc();
+
+
+                $info_stamt = $conn->prepare("SELECT * FROM user_secret_questions WHERE UserID=?");	
+                $info_stamt->bind_param("s", $USER['UserID']);
                 $info_stamt->execute();
                 $results = $info_stamt->get_result();
     
                 while($table = $results->fetch_assoc()){
-                    if(strtolower($table['question']) === strtolower($question) && strtolower($table['answer']) === strtolower($answer)){
+                    if(strtolower($table['Question']) === strtolower($question) && strtolower($table['Answer']) === strtolower($answer)){
                         $_SESSION['page'] = "founduser";
-                        $_SESSION['temp_store_mail'] = $table['email'];
                     }else{
                         $errormsg = "incorrect info";
                     }
@@ -39,34 +46,45 @@
             }
         
 
-       }else if($_SESSION['page'] === "founduser"){
-        $password = $_POST['password'];
-        $confirm_password = $_POST['Confirm_password'];
-        $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-        if(isset($_POST['password']) && isset($_POST['Confirm_password'])){
-            if($password === $confirm_password){
-                $reset_pass_call = $conn ->prepare('SELECT * FROM users WHERE email=?');
-                $reset_pass_call->bind_param('s', $_SESSION['email']);
-                $reset_pass_call->execute();
+        }else if($_SESSION['page'] === "founduser"){
+            $password = $_POST['password'];
+            $confirm_password = $_POST['Confirm_password'];
+            $pass_hash = password_hash($password, PASSWORD_DEFAULT);
+            if(strlen($password) >= 6){
+                if(isset($_POST['password']) && isset($_POST['Confirm_password'])){
+                    if($password === $confirm_password){
+                        $getmail = $conn->prepare('SELECT * FROM Users where Email=?');
+                        $getmail->bind_param('s', $_SESSION['email']);
+                        $getmail->execute();
+                        $res = $getmail ->get_result();
+                        $USER = $res->fetch_assoc();
     
-                $results = $reset_pass_call->get_result();
-                while($table = $results->fetch_assoc()){
-                    $set_pass = $conn->prepare('UPDATE users SET password=? WHERE email=?');
-                    $set_pass->bind_param('ss', $pass_hash, $_SESSION['email']);
-                    $set_pass->execute();
-                    session_destroy();
-                    header('location: login.php');
+                        $reset_pass_call = $conn ->prepare('SELECT * FROM Users WHERE UserID=?');
+                        $reset_pass_call->bind_param('s', $USER['UserID']);
+                        $reset_pass_call->execute();
+            
+                        $results = $reset_pass_call->get_result();
+                        while($table = $results->fetch_assoc()){
+                            $set_pass = $conn->prepare('UPDATE Users SET password=? WHERE UserID=?');
+                            $set_pass->bind_param('ss', $pass_hash, $USER['UserID']);
+                            $set_pass->execute();
+                            session_destroy();
+                            header('location: login.php');
+                        }
+                    }else{
+                        $errormsg = "The passwords do not match";
+                    }
+                }else{
+                    $errormsg = "fill out all forms";
                 }
             }else{
-                $errormsg = "The passwords do not match";
+                $errormsg = "Your password has to be 6 characters or longer";
             }
-        }else{
-            $errormsg = "fill out all forms";
+        
         }
-    }
     
         
-       }
+    }
     
     
 ?>

@@ -67,7 +67,7 @@
 		<label for="password">Password:</label>
 		<input type="password" id="password" name="password"><br><br>
         <p style="color:red;"><?php echo $errormsg?></p>
-		<p><a href="./register.php">Register Account</a></p>
+		<p><a href="./register.php" onclick="<?php $_SESSION['err'] = "n" ?>">Register Account</a></p>
         <p><a href="./forgotPassword.php" onclick="<?php $_SESSION['page'] = 'finduser'; ?>">Forgot pasword</a></p>
 		<input type="submit" value="Login">
 	</form>

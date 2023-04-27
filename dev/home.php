@@ -39,17 +39,10 @@
                     if($tag === "ALL POSTS"){
                         $where_clause = "";
                     }else{
-                        if ($where_clause == "") {
-                            $where_clause = "WHERE Tagname = '$tag'";
-                        } else {
-                            $where_clause .= " OR Tagname = '$tag'";
-                        }
+                        if ($where_clause == "") $where_clause = "WHERE Tagname = '$tag'";
                     }
                 }
-                //$stmt = $conn->prepare("SELECT * FROM Posts $where_clause ORDER BY created_at DESC");
                 
-                
-
                 echo '
                 <h1 style="text-align:center; margin-top:50px;">Welcome, ' . $usr . "!" .'</h1>
                 <form method="POST" id="filter-form" style="text-align:center">
@@ -85,8 +78,6 @@
                         $profile_pictures[$picID['UserID']] = "../assets/default-profile-photo.jpg";
                     }
                 }
-
-                echo $where_clause;
                 echo "<br>";
                 $stmt = $conn->prepare("SELECT * FROM posts JOIN Tags ON posts.TagID = Tags.TagID $where_clause ORDER BY Created_at DESC");
                 $stmt->execute();
@@ -99,26 +90,32 @@
         
         //skriver ut alla inlägg
         while ($row = $results->fetch_assoc()) {
-            
+            $getinforq = $conn->prepare('SELECT * FROM Users where UserID = ?');
+            $getinforq->bind_param("i", $row['UserID']);
+            $getinforq->execute();
+            $tt = $getinforq->get_result();
+            $user = $tt->fetch_assoc();
+
             //Kolla om "Anonymous mode" är på eller inte
-            $Author = $row['Anonymous'] ? "Anonymous" : $_SESSION['Username'];
+            $Author = $row['Anonymous'] ? "Anonymous" : $user['Username'];
             
             echo '<div class="post-container">';
             echo '<div class="post-header">' . $row['Title'] . '</div>';
-            echo '<div class="post-meta">By ' . $Author . " (you)". ' on ' . $row['Created_at'] . '</div>';
+            echo '<div class="post-meta">By ' . $Author . "". ' on ' . $row['Created_at'] . '</div>';
             echo '<div class="post-content">' . $row['Content'] . '</div>';
 
             if($Author === "Anonymous"){
                 echo '<img src="../assets/default-profile-photo.jpg" width="80" height="80" style="float: right; margin-top: -70px;">';
             }else{
 
-                //från gpt fattar ej själv hur skiten funkar
+                
                 if (isset($profile_pictures[$row['UserID']])) {
                     $img_src = $profile_pictures[$row['UserID']];
                     echo '<img src="' . $img_src . '" width="80" height="80" style="float: right; margin-top: -70px;">';
                 }
             }
             
+
             $getPost_stamt = $conn -> prepare("SELECT * FROM Tags WHERE TagID =?");
             $getPost_stamt->bind_param('s', $row['TagID']);
             $getPost_stamt->execute();
@@ -127,39 +124,12 @@
             // Display the tags for the post
             $tags = explode(',', $TagDATA['Tagname']);
             
-            $getPost_stamt = $conn->prepare("SELECT * FROM Post_Pic WHERE PostID = ?");
-            $getPost_stamt->bind_param('s', $row['PostId']);
-            $getPost_stamt->execute();
-            $res = $getPost_stamt->get_result();
-            $TagDATA = $res->fetch_assoc();
-            $post_pictures = [];
-
-            //laddar in bild för inlägget
-            while ($TagDATA) {
-                if (!empty($TagDATA['image_data'])) {
-                    $img_data = $TagDATA['image_data'];
-                    $img_type = $TagDATA['image_type'];
-                    $base64_image = base64_encode($img_data);
-                    $img_src = "data:$img_type;base64,$base64_image";
-                    $post_pictures[$TagDATA['Post_picID']] = $img_src;
-                }
-                $TagDATA = $res->fetch_assoc();
-            }
-
-            if (isset($post_pictures[$row['PostId']])) {
-                $img_src = $post_pictures[$row['PostId']];
-                echo '<img src="' . $img_src . '" width="250px" height="250px" style="margin-top: 18px; position: relative; left:98px; border-style: solid;">>';
-            }
-            //echo "<img src='../assets/default-profile-photo.jpg' width='250px' height='250px' style='margin-top: 18px; position: relative; left:98px; border-style: solid;'> ";
 
             echo '<div class="post-tags">';
-            
             foreach($tags as $tag) {
                 echo '<span class="tag ' . $tag . '">' . ucfirst($tag) . '</span>';
             }
             echo '</div>';
-
-
             echo '</div>';
             
         }

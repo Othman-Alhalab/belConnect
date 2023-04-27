@@ -59,11 +59,5 @@ CREATE TABLE Profile_pic(
 	FOREIGN KEY (UserID) REFERENCES Users (UserID)
 );
 
-Create table Post_Pic(
-	Post_picID int primary key auto_increment,
-	PostID int,
-	image_type VARCHAR(255),
-	image_data LONGBLOB
-);
 
 

@@ -14,6 +14,11 @@
         return preg_match('/\S/', $str) && preg_match('/[a-zA-Z]/', $str);
     };
 
+    function testUsername($str){
+        return preg_match('/^[a-zA-Z0-9_]{1,}$/', $str);
+    }
+      
+
    //en function som tar fram "user-id" om det behövs. 
     function getid($conn){
         $user = $_POST['username'];

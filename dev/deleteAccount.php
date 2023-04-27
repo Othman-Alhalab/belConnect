@@ -27,41 +27,32 @@
                     }
                 }else if($_SESSION['delAccount'] == "founduser"){
                     if(isset($_POST['password']) && isset($_POST['username'])){
-                        $findInfo = $conn->prepare('SELECT * FROM Accounts WHERE Username=?');
+                        $findInfo = $conn->prepare('SELECT * FROM Users WHERE Username=?');
                         $findInfo->bind_param('s', $_POST['username']);
                         $findInfo->execute();
                         $results = $findInfo->get_result();
                         
-                        /*
+                        
                         while($table = $results->fetch_assoc()){
                           if(password_verify($_POST['password'], $table['Password']) && $_SESSION['UserID'] == $table['UserID'] && strtolower($_POST['username']) === strtolower($table['Username'])){
                             
                             
-                            $delAcc = $conn->prepare('SELECT * FROM Posts WHERE UserID=?');
-                            $delAcc->bind_param('i', $table['UserID']);
-                            $delAcc->execute();
-                            $delAcc = $info_stamt->get_result();
-                            $post_tag = $delAcc->fetch_assoc();
-                            foreach($post_tag as $tags_data){
-                                $delAcc = $conn->prepare('DELETE FROM Tags WHERE TagID=?;');
-                                $delAcc->bind_param('i', $tags_data);
-                                $delAcc->execute();
-                            }
-
 
                             $delAcc = $conn->prepare('DELETE FROM user_secret_questions WHERE UserID=?;');
                             $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
                             
-                            $delAcc = $conn->prepare('DELETE FROM Users WHERE UserID=?;');
-                            $delAcc->bind_param('i', $table['UserID']);
-                            $delAcc->execute();
-
-                            $delAcc = $conn->prepare('DELETE FROM Accounts WHERE UserID=?;');
-                            $delAcc->bind_param('i', $table['UserID']);
-                            $delAcc->execute();
+                            
 
                             $delAcc = $conn->prepare('DELETE FROM Posts WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
+                            $delAcc->execute();
+
+                            $delAcc = $conn->prepare('DELETE FROM Profile_pic WHERE UserID=?;');
+                            $delAcc->bind_param('i', $table['UserID']);
+                            $delAcc->execute();
+
+                            $delAcc = $conn->prepare('DELETE FROM Users WHERE UserID=?;');
                             $delAcc->bind_param('i', $table['UserID']);
                             $delAcc->execute();
 
@@ -70,7 +61,7 @@
                             echo "wrong password";
                           }
                         }
-                        */
+                        
                     }
                 }
             }
