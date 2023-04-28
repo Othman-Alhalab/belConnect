@@ -1,5 +1,7 @@
 <?php 
     session_start();
+
+	//initierar variabler så att det kan användas för att skriva ut error meddelanden på sidan 
 	$error_pass = "";
 	$error_change_profile_picture = "";
 	$security_and_privacy = "";
@@ -11,11 +13,11 @@
 <?php
 	require "config.php";
 	require "./metoder.php";
-		
+	//kollar om det sker en POST request på sidan
 	if($_SERVER['REQUEST_METHOD'] == 'POST'){
-		//$msg = "sds";
-
 		$tabname = $_COOKIE["tabname"];
+
+		//tar info från kakan "tabname" och bestämmer vilken "form" som ska vara synlig
 		if($tabname == "personal_info"){
 			$firstname = $_POST['first_name'];
 			$lastname = $_POST['last_name'];
@@ -23,21 +25,30 @@
 			$email = $_POST['email'];
 			$Phone_number = $_POST['Phone_number'];
 
+			//kollar att alla inputs är fyllda så att jag inte lägger in tom data i databasen
 			if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['username']) && isset($_POST['email']) && isset($_POST['Phone_number'])){
 				$username_lowercase = strtolower($username);
 				
+				//kollar så att man inte har samma "Username" som man hade tidigare
 				if($_POST['username'] != $_SESSION['Username']){
 					$result = $conn->prepare("SELECT * FROM Users WHERE LOWER(Username)=?");
 					$result->bind_param('s', $username_lowercase);
 					$result->execute();
 					$result->store_result();
 
-					//alot of checks
+					/**
+					 * Kollar om $Phone_number inte inehåller några mellan rum
+					 * Kollar om $Phone_number är större eller likamed 6 siffor
+					 * Kollar om $Phone_number matchar med formatet som finns i metoden "checkPhoneNumber"
+					 */
 					if(!empty(trim($Phone_number)) && strlen(trim($Phone_number)) >= 6 && checkPhoneNumber(trim($Phone_number))){
 						if(inputTest($firstname) && inputTest($lastname)){
+							//kollar om email addresen stämmer med formatet
 							if(filter_var($email, FILTER_VALIDATE_EMAIL)){
+								//kollar om "username" matchar formatet och är större eller likamed 3 Karaktärer
 								if(testUsername($username) && strlen($username) >= 3){
-									if ($result->num_rows == 0) {			
+									if ($result->num_rows == 0) {		
+										//uppdaterar "Username" i databasen till det nya användarnamnet 
 										$stmt_users = $conn ->prepare("UPDATE Users SET Username=? WHERE UserID=?");
 										$stmt_users->bind_param('si',$_POST['username'], $_SESSION['UserID']);
 				
@@ -70,11 +81,12 @@
 					
 					
 				}else{
-					//$user_id = $_SESSION['id'];//isset($_SESSION['id']) ? $_SESSION['id'] : getid($conn);
+					//uppdaterar datan i "Users" med den inskrivna datan
 					$stmt_users = $conn -> prepare("UPDATE Users SET Username=?, Email=?, Firstname=?, Lastname=?, Phone_number=? WHERE UserID=?");
 					$stmt_users->bind_param('ssssii', $username, $email, $firstname, $lastname, $Phone_number, $_SESSION['UserID']);
 
 					if ($stmt_users->execute()) {
+						//uppdaterar alla variabler i vår session
 						$_SESSION['Username'] = $_POST['username'];
 						$_SESSION['Email'] = $_POST['email'];
 						$_SESSION['Firstname'] = $_POST['first_name'];
@@ -96,25 +108,36 @@
 				$error_personal_info = "fill in all fields";
 			}
 		}elseif($tabname == "change_password"){
+			//hämtar "Password" från "Users" tabelen
 			$getCureentPass = $conn->prepare('SELECT Password FROM Users where UserID =?');
 			$getCureentPass->bind_param('s', $_SESSION['UserID']);
 			$getCureentPass->execute();
 			$res =$getCureentPass->get_result();
+
+			//lägger in datan i $UserPass variablen
             $UserPass = $res->fetch_assoc();
 
 			//lössenords byte (kollar först vilken sida(Tabname) användaren är på och sedan kollar på alla inputs är ifyllda).
 			if(isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])){
 				$oldPass = $_POST['current_password'];
-				$userDbPass = $UserPass['Password'];
 				$newPass = $_POST['new_password'];
 				$confirmPass = $_POST['confirm_password'];
-				$user_id = $_SESSION['UserID']; 
+				$user_id = $_SESSION['UserID'];
 
+				//använder data från databasen
+				$userDbPass = $UserPass['Password'];
+
+				//hashar lösenordet
 				$hashed_pass = password_hash($newPass, PASSWORD_DEFAULT);
-				//Kollar att det gammla lösenordet inte är samma som det nya.    $oldPass == $userDbPass
+
+				//Kollar om lösenordet är större eller likamed 6
 				if(strlen($newPass) >= 6){
 					if($confirmPass === $newPass){
+
+						//kollar så att det gamla lösenordet är samma som med det som finns i databasen
 						if(password_verify($oldPass, $userDbPass)){
+
+							//kollar om lösenordet inte är samma som det gamla lösenordet
 							if(!password_verify($newPass, $userDbPass)){
 								$pass_stamt = $conn->prepare("UPDATE Users SET Password=? WHERE UserID=?");
 								$pass_stamt->bind_param("si", $hashed_pass, $_SESSION['UserID']);
@@ -146,8 +169,10 @@
 
 			$allowed = array("image/jpeg", "image/png");
 			try {
-				
+				//kollar så stårleken på filen och om den är över 1mb så får den inte laddas upp
 				if($_FILES['my_image']['size'] < 1000000){
+
+					//kollar om det är den förfrågade data typen endast (image/jpeg" och "image/png)
 					if(in_array($_FILES['my_image']['type'], $allowed)) {
 						if(isset($_FILES['my_image'])){
 							$img_name = $_FILES['my_image']['name'];
@@ -157,6 +182,7 @@
 							$img_data = file_get_contents($tmp_name);
 							$img_type = $_FILES['my_image']['type'];
 							
+							//prepare statment som sätter in profilbilden i "Profile_pic" tabelen
 							$stmt = $conn->prepare("UPDATE Profile_pic SET image_data = ?, image_type = ? WHERE UserID = ?");
 							$stmt->bind_param("sss", $img_data, $img_type, $_SESSION['UserID']);	
 							$stmt->execute();
@@ -175,22 +201,27 @@
 
 				
 			} catch (\Throwable $th) {
+				//en try catch om man tryckte på "upload" image knappen utan att ladda up en bild
 				$error_change_profile_picture = "No image was selected";
 			}
 		
 			
 		}elseif($tabname == "security_and_privacy"){
-			$stmt = $conn->prepare("SELECT * FROM user_secret_questions");
+			//hämtar all data från "user_secret_questions" tabelen
+			$stmt = $conn->prepare("SELECT * FROM user_secret_questions where UserID=?");
+			$stmt->bind_param("s", $user_id);
 			$stmt->execute();
 			$stmt->store_result();
 
+			
 			if ($stmt->num_rows < 0) {
 				$error_2fa = "You already have a secret question set!";
 			} else {
 				if (!empty($_POST['answer'])) {
+					//sätter in din "secret_questions" i databasen
 					$register_answer = $conn->prepare("INSERT INTO user_secret_questions (UserID, Question, Answer) VALUES (?, ?, ?)");
 					$register_answer->bind_param("sss", $_SESSION['UserID'], $_POST['question'], $_POST['answer']);
-					if ($register_answer->execute() === true) {
+					if ($register_answer->execute()) {
 						$error_2fa = "A secret question has been set!";
 						$_SESSION['secret'] = true;
 					}
@@ -209,7 +240,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="../assets/css/editProfile.css">
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
         <title>Document</title>
     </head>
     <body>
@@ -242,6 +272,10 @@
 	<form action="" method="post" id="personal_info">
 		<div id="personal_info" >
 				<label for="first_name">First Name:</label>
+				<!--
+					<//?php echo $_SESSION['Firstname'] ?> <-- exempel
+					används till att visa upp data på "personal_info" sidan
+				-!-->
 				<input type="text" id="first_name" name="first_name" value="<?php echo $_SESSION['Firstname'] ?>" required><br><br>
 				<label for="last_name">Last Name:</label>
 				<input type="text" id="last_name" name="last_name" value="<?php echo $_SESSION['Lastname'] ?>" required><br><br>
@@ -271,6 +305,9 @@
 				<input type="password" id="new_password" name="new_password" required><br><br>
 				<label for="confirm_password">Confirm Password:</label>
 				<input type="password" id="confirm_password" name="confirm_password" required><br><br>
+				<!--
+					används för att skriva ut error meddelanden
+				-!-->
 				<p> <?php echo $error_pass ?></p>
 			<input type="submit" value="Save changes"> 
 		</div>
@@ -281,23 +318,25 @@
 
 		<div id="change_profile_picture">
 			<?php 
+				//denna kod gör det börjligt för oss att se profilbilden på "change_profile_picture" sidan
 				$getPic = $conn->prepare('SELECT * from Profile_pic where UserID=?');
 				$getPic->bind_param("s", $_SESSION['UserID']);
 				$getPic->execute();
 				$tempV = $getPic->get_result();
 				$res = $tempV->fetch_assoc();
+				//kollar om användaren har något i image_data kollumen
 				if (!empty($res['image_data'])) {
 					$img_data = $res['image_data'];
 					$img_type = $res['image_type'];
 					$base64_image = base64_encode($img_data);
 					$img_src = "data:$img_type;base64,$base64_image";
 				} else {
+					//om det inte finns något i kollumen skrivs "default-profile-photo" ut istället
 					$img_src = "../assets/default-profile-photo.jpg";
 				}
-				
-				echo '<img src="' . $img_src . '" width="180" height="180" style="margin-top: 63px; margin-left: 192px;">';
-				
 
+				//här skrivs den ut
+				echo '<img src="' . $img_src . '" width="180" height="180" style="margin-top: 63px; margin-left: 192px;">';
 			?>
 			<br>
 			<br>
@@ -319,11 +358,14 @@
 	
 	<form action="" method="post" id="security_and_privacy">
 	<?php 
+		//hämtar infår från "user_secret_questions" tabalen för att kunna avgöra om
+		//användaren har skrivit in en "secret_question" eller inte.
 		$info_stamt = $conn->prepare("SELECT * FROM user_secret_questions WHERE UserID = ?");
 		$info_stamt->bind_param('s', $_SESSION['UserID']);
 		$info_stamt->execute();
 		$info_stamt->store_result();
 		
+		//om det inte finns en "secret_question" skriver den ut denna
 		if($info_stamt->num_rows == 0):?>
 			
 			<label for="question"></label>
@@ -360,6 +402,7 @@
 		//regex från stackoverflow
 		const tabname_in = document.cookie ? document.cookie.replace(/(?:(?:^|.*;\s*)tabname\s*\=\s*([^;]*).*$)|^.*$/, "$1") : "personal_info"
 		
+		//en metod som avgör vilken tab användaren är på
 		function selectTab(tabname){
 			switch (tabname) {
 				case "change_password":
@@ -404,7 +447,7 @@
 			}
 			
 		}
-		
+		//har satt denna som ett "default" värde
 		selectTab(tabname_in)
 	</script>
 	

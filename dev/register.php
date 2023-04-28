@@ -1,5 +1,6 @@
 
 <?php
+  session_start();
     //dessa gör det möjligt för mig att spara variabler efter att sidan "refrashar" svengelska
     $input_Firstname = isset($_POST['firstname']) ? $_POST['firstname'] : '';
     $input_Lastname = isset($_POST['lastname']) ? $_POST['lastname'] : '';
@@ -7,6 +8,10 @@
     $input_age = isset($_POST['age']) ? $_POST['age'] : '';
     $input_phone = isset($_POST['phone']) ? $_POST['phone'] : '';
     $input_Email = isset($_POST['email']) ? $_POST['email'] : '';
+
+    $input_question = isset($_POST['question']) ? $_POST['question'] : '';
+    $input_answer = isset($_POST['answer']) ? $_POST['answer'] : '';
+    $input_check = isset($_POST['check2fa']) ? $_POST['check2fa'] : '';
 ?>
 
 
@@ -50,7 +55,19 @@
         <label for="password_con">Confirm Password:</label>
         <input type="password" id="password_con" name="password_con"><br>
 
-        
+        <br>
+        <br>
+        <label for="myCheckbox" for="check2fa" >2FA</label>
+        <input type="checkbox" id="myCheckbox" onchange="toggleTextbox()" name="check2fa" value="<?php echo $input_check ?>">
+        <br>
+        <select id="question" name="question" style="display:none;" value="<?php echo $input_question ?>">
+          <option value="show">What is your favorite movie or TV show?</option>
+          <option value="born">In what city or town were you born?</option>
+          <option value="pet">What was the name of your first pet?</option>
+			  </select>
+        <input type="text" name="answer" id="answer" value="<?php echo $input_answer ?>" style="display:none;">
+        <br>
+        <br>
         <button type="submit" onclick="checkForm2()">Submit</button>
         <button type="button" onclick="back()">Back</button>
     </div>
@@ -58,6 +75,18 @@
 
 
     <script>
+      let check2f = false;
+      function toggleTextbox(){
+        if(check2f === false){
+          document.getElementById("question").style.display = "block";
+          document.getElementById("answer").style.display = "block";
+          check2f = true;
+        }else if(check2f === true){
+          document.getElementById("question").style.display = "none";
+          document.getElementById("answer").style.display = "none";
+          check2f = false;
+        }
+      }
       function checkForm1() {
         // Get all the input elements in the first form
         const inputs = document.querySelectorAll("#form1 input");
@@ -95,6 +124,7 @@
         }
       }
 
+
       function back(){
         document.getElementById("form1").style.display = "block";
         document.getElementById("form2").style.display = "none";
@@ -107,7 +137,7 @@
 <?php
 require "metoder.php";
 require "config.php";
-session_start();
+
    
       if($_SERVER['REQUEST_METHOD'] == "POST"){
         if (isset($_POST["username"]) && isset($_POST["password"])) {
@@ -120,7 +150,9 @@ session_start();
             $email = $_POST['email'];
             $firstname = $_POST['firstname'];
             $lastname = $_POST['lastname'];
-        
+
+            //hämtar infromation från Users för att kolla om det redan finns någon med samma användarnamn som 
+            //den nya användaren eller inte
             $user_reg_stmt = $conn->prepare("SELECT * FROM Users WHERE Username=?");
             $user_reg_stmt->bind_param('s', $username);
             $user_reg_stmt->execute();
@@ -140,17 +172,48 @@ session_start();
                             if ($result_username->num_rows == 0) {
                                 if($result_email->num_rows == 0){
                                     
-                                //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
-                                $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                                $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
-                                $register_users->execute();
-                
-                                $user_id = $register_users->insert_id;
-                                
-                                $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
-                                $create_pic->bind_param('i',$user_id);
-                                
-                                    if ($create_pic->execute()) {
+                                if(isset($_POST['check2fa'])){
+                                    $extra2 = $_POST['check2fa'];
+                                    $answer = $_POST['answer'];
+                                    $question = $_POST['question'];
+                                    //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
+                                    $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                                    $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
+                                    $register_users->execute();
+                    
+                                    $user_id = $register_users->insert_id;
+                                    
+                                    $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
+                                    $create_pic->bind_param('i',$user_id);
+
+                                    $set2FA = $conn->prepare("INSERT INTO user_secret_questions (UserID, Question, Answer) VALUES (?, ?, ?)");
+                                    $set2FA->bind_param('sss', $user_id, $question, $answer);
+
+                                    if ($create_pic->execute() && $set2FA->execute()) {
+                                      $_SESSION['Username'] = $_POST["username"];
+                                      $_SESSION['Phone_number'] = $_POST['phone'];
+                                      $_SESSION['Password'] = $_POST["password"];
+                                      $_SESSION['Email'] = $_POST['email'];
+                                      $_SESSION['Firstname'] = $_POST['firstname'];
+                                      $_SESSION['Lastname'] = $_POST['lastname'];
+                                      $_SESSION['UserID'] = $user_id;
+                                      echo '<script>window.location.href = "home.php";</script>';
+                                      
+                                      } else {
+                                        echo "Error: " . $conn->error;
+                                      } 
+                                    }else{
+                                      //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
+                                      $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                                      $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
+                                      $register_users->execute();
+                      
+                                      $user_id = $register_users->insert_id;
+                                      
+                                      $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
+                                      $create_pic->bind_param('i',$user_id);
+
+                                      if ($create_pic->execute()) {
                                         $_SESSION['Username'] = $_POST["username"];
                                         $_SESSION['Phone_number'] = $_POST['phone'];
                                         $_SESSION['Password'] = $_POST["password"];
@@ -158,11 +221,15 @@ session_start();
                                         $_SESSION['Firstname'] = $_POST['firstname'];
                                         $_SESSION['Lastname'] = $_POST['lastname'];
                                         $_SESSION['UserID'] = $user_id;
-                                        header("Location: home.php");
-               
+                                        echo '<script>window.location.href = "home.php";</script>';
+                                        
+              
                                     } else {
                                       echo "Error: " . $conn->error;
                                     }  
+                                  }
+                                
+                                   
                 
                                 }else{
                                   echo "<script>document.getElementById('err').innerText = 'Email is already in use!'</script>";
