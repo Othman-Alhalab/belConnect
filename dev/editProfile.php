@@ -286,21 +286,17 @@
 				$getPic->execute();
 				$tempV = $getPic->get_result();
 				$res = $tempV->fetch_assoc();
-				$profile_pictures = [];
-				if(!empty($res['image_data'])){
-					$img_data = $res['image_data']; 
+				if (!empty($res['image_data'])) {
+					$img_data = $res['image_data'];
 					$img_type = $res['image_type'];
 					$base64_image = base64_encode($img_data);
 					$img_src = "data:$img_type;base64,$base64_image";
-					$profile_pictures[$res['UserID']] = $img_src;
-				}else{
-					$profile_pictures[$res['UserID']] = "../assets/default-profile-photo.jpg";
+				} else {
+					$img_src = "../assets/default-profile-photo.jpg";
 				}
 				
-				if (isset($profile_pictures[$res['UserID']])) {
-                    $img_src = $profile_pictures[$res['UserID']];
-                    echo '<img src="' . $img_src . '" width="180" height="180" style="margin-top: 63px; margin-left: 192px;">';
-                }
+				echo '<img src="' . $img_src . '" width="180" height="180" style="margin-top: 63px; margin-left: 192px;">';
+				
 
 			?>
 			<br>
