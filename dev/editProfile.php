@@ -143,6 +143,7 @@
 			}
 
 		}elseif($tabname == "change_profile_picture"){
+
 			$allowed = array("image/jpeg", "image/png");
 			try {
 				
@@ -277,13 +278,44 @@
 
 
 	<form action="" method="post" id="change_profile_picture" enctype = "multipart/form-data">
-		<!---
-		Måste fixa så att man kan se vilken bild man laddade upp
-		-->
+
 		<div id="change_profile_picture">
+			<?php 
+				$getPic = $conn->prepare('SELECT * from Profile_pic where UserID=?');
+				$getPic->bind_param("s", $_SESSION['UserID']);
+				$getPic->execute();
+				$tempV = $getPic->get_result();
+				$res = $tempV->fetch_assoc();
+				$profile_pictures = [];
+				if(!empty($res['image_data'])){
+					$img_data = $res['image_data']; 
+					$img_type = $res['image_type'];
+					$base64_image = base64_encode($img_data);
+					$img_src = "data:$img_type;base64,$base64_image";
+					$profile_pictures[$res['UserID']] = $img_src;
+				}else{
+					$profile_pictures[$res['UserID']] = "../assets/default-profile-photo.jpg";
+				}
+				
+				if (isset($profile_pictures[$res['UserID']])) {
+                    $img_src = $profile_pictures[$res['UserID']];
+                    echo '<img src="' . $img_src . '" width="180" height="180" style="margin-top: 63px; margin-left: 192px;">';
+                }
+
+			?>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
 			<input type = "file" name = "my_image">
 			<p><?php echo $error_change_profile_picture ?></p>
 			<input type="submit" name="submit" value="Submit">
+			<img src="" alt="">
+			
+			
 			
 		</div>
 	</form>

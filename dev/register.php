@@ -35,7 +35,7 @@
         <label for="phone">Phone Number: (requied)</label>
         <input type="tel" id="phone" name="phone" value="<?php echo $input_phone ?>"><br>
 
-        <label for="age">Age: <br> (requied)</label>
+        <label for="age">Age: <br> (requied) [12+] </label>
         <input type="number" id="age" name="age" value="<?php echo $input_age ?>"><br>
         <p id="err" name="err" style="color:red;"></p>
         <button type="button" onclick="checkForm1()">Next</button>
