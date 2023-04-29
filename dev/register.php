@@ -38,7 +38,7 @@
         <input type="text" id="email" name="email" value="<?php echo $input_Email ?>"><br>
 
         <label for="phone">Phone Number: (requied)</label>
-        <input type="tel" id="phone" name="phone" value="<?php echo $input_phone ?>"><br>
+        <input type="tel" id="phone" name="phone"value="<?php echo $input_phone ?>"><br>
 
         <label for="age">Age: <br> (requied) [12+] </label>
         <input type="number" id="age" name="age" value="<?php echo $input_age ?>"><br>
@@ -163,19 +163,47 @@ require "config.php";
                 if(filter_var($email, FILTER_VALIDATE_EMAIL)){
                   if(inputTest($firstname) && inputTest($lastname) && inputTest($username)){
                     if($age >= 12){
-                      if(isset($password, $confirmPass) && $password == $confirmPass) {
-                            $pass_hash = password_hash($password, PASSWORD_DEFAULT);      
-                            $username_lowercase = strtolower($username);
-                            $email_lowercase = strtolower($email);
-                            $result_username = $conn->query("SELECT * FROM Users WHERE LOWER(Username)='$username_lowercase'");
-                            $result_email = $conn->query("SELECT * FROM Users WHERE LOWER(email)='$email_lowercase'");
-                            if ($result_username->num_rows == 0) {
-                                if($result_email->num_rows == 0){
+                      if(strlen($phone_number)>= 6){
+                        if(isset($password, $confirmPass) && $password == $confirmPass) {
+                          $pass_hash = password_hash($password, PASSWORD_DEFAULT);      
+                          $username_lowercase = strtolower($username);
+                          $email_lowercase = strtolower($email);
+                          $result_username = $conn->query("SELECT * FROM Users WHERE LOWER(Username)='$username_lowercase'");
+                          $result_email = $conn->query("SELECT * FROM Users WHERE LOWER(email)='$email_lowercase'");
+                          if ($result_username->num_rows == 0) {
+                              if($result_email->num_rows == 0){
+                                  
+                              if(isset($_POST['check2fa'])){
+                                  $extra2 = $_POST['check2fa'];
+                                  $answer = $_POST['answer'];
+                                  $question = $_POST['question'];
+                                  //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
+                                  $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                                  $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
+                                  $register_users->execute();
+                  
+                                  $user_id = $register_users->insert_id;
+                                  
+                                  $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
+                                  $create_pic->bind_param('i',$user_id);
+
+                                  $set2FA = $conn->prepare("INSERT INTO user_secret_questions (UserID, Question, Answer) VALUES (?, ?, ?)");
+                                  $set2FA->bind_param('sss', $user_id, $question, $answer);
+
+                                  if ($create_pic->execute() && $set2FA->execute()) {
+                                    $_SESSION['Username'] = $_POST["username"];
+                                    $_SESSION['Phone_number'] = $_POST['phone'];
+                                    $_SESSION['Password'] = $_POST["password"];
+                                    $_SESSION['Email'] = $_POST['email'];
+                                    $_SESSION['Firstname'] = $_POST['firstname'];
+                                    $_SESSION['Lastname'] = $_POST['lastname'];
+                                    $_SESSION['UserID'] = $user_id;
+                                    echo '<script>window.location.href = "home.php";</script>';
                                     
-                                if(isset($_POST['check2fa'])){
-                                    $extra2 = $_POST['check2fa'];
-                                    $answer = $_POST['answer'];
-                                    $question = $_POST['question'];
+                                    } else {
+                                      echo "Error: " . $conn->error;
+                                    } 
+                                  }else{
                                     //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
                                     $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
                                     $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
@@ -186,10 +214,7 @@ require "config.php";
                                     $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
                                     $create_pic->bind_param('i',$user_id);
 
-                                    $set2FA = $conn->prepare("INSERT INTO user_secret_questions (UserID, Question, Answer) VALUES (?, ?, ?)");
-                                    $set2FA->bind_param('sss', $user_id, $question, $answer);
-
-                                    if ($create_pic->execute() && $set2FA->execute()) {
+                                    if ($create_pic->execute()) {
                                       $_SESSION['Username'] = $_POST["username"];
                                       $_SESSION['Phone_number'] = $_POST['phone'];
                                       $_SESSION['Password'] = $_POST["password"];
@@ -199,47 +224,27 @@ require "config.php";
                                       $_SESSION['UserID'] = $user_id;
                                       echo '<script>window.location.href = "home.php";</script>';
                                       
-                                      } else {
-                                        echo "Error: " . $conn->error;
-                                      } 
-                                    }else{
-                                      //Koden under lägger in variablerna i tabellen "users" i databasen med hjälp av prepare statments 
-                                      $register_users = $conn->prepare("INSERT INTO Users (Firstname, Lastname, Phone_number, age, Username, Password, Email) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                                      $register_users->bind_param('sssssss', $firstname, $lastname, $phone_number, $age, $username, $pass_hash, $email);
-                                      $register_users->execute();
-                      
-                                      $user_id = $register_users->insert_id;
-                                      
-                                      $create_pic = $conn->prepare("INSERT INTO Profile_pic (UserID) VALUES (?)");
-                                      $create_pic->bind_param('i',$user_id);
-
-                                      if ($create_pic->execute()) {
-                                        $_SESSION['Username'] = $_POST["username"];
-                                        $_SESSION['Phone_number'] = $_POST['phone'];
-                                        $_SESSION['Password'] = $_POST["password"];
-                                        $_SESSION['Email'] = $_POST['email'];
-                                        $_SESSION['Firstname'] = $_POST['firstname'];
-                                        $_SESSION['Lastname'] = $_POST['lastname'];
-                                        $_SESSION['UserID'] = $user_id;
-                                        echo '<script>window.location.href = "home.php";</script>';
-                                        
-              
-                                    } else {
-                                      echo "Error: " . $conn->error;
-                                    }  
-                                  }
-                                
-                                   
-                
-                                }else{
-                                  echo "<script>document.getElementById('err').innerText = 'Email is already in use!'</script>";
+            
+                                  } else {
+                                    echo "Error: " . $conn->error;
+                                  }  
                                 }
-                                
-                            } else {
-                              echo "<script>document.getElementById('err').innerText = 'Username is already in use!'</script>";
-                            }
-                            
+                              
+                                 
+              
+                              }else{
+                                echo "<script>document.getElementById('err').innerText = 'Email is already in use!'</script>";
+                              }
+                              
+                          } else {
+                            echo "<script>document.getElementById('err').innerText = 'Username is already in use!'</script>";
                           }
+                          
+                        }
+                      }else{
+                        echo "<script>document.getElementById('err').innerText = 'Phone number way too short. (atleast 6 numbers)'</script>";
+                      }
+                      
                       } else {
                         echo "<script>document.getElementById('err').innerText = 'You have to be older then 13'</script>";
                       }

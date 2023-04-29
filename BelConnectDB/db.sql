@@ -2,6 +2,7 @@ DROP database BelConnectDB;
 Create database BelConnectDB;
 use BelConnectDB;
 
+
 Create table IF NOT exists Users(
 	UserID int primary key auto_increment,
 	Firstname varchar (200),

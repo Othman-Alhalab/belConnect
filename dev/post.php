@@ -1,7 +1,7 @@
 
 <?php
     require "config.php";
-    session_start(); // start the session
+    session_start();
     $error_msg = "";
     if(isset($_SESSION['Username'])) :?>
 
@@ -67,6 +67,7 @@
 <?php
     //Till att lägga upp inlägg
     if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        //kollar så att ingen tom data hamnar i databasen
        if(isset($_POST['post-name']) && isset($_POST['tags'])){
          if(!empty($_POST['post-data'] && !empty($_POST['post-name']))){
             
@@ -100,7 +101,7 @@
                 }
                 
             
-
+                //om taggen inte är null och inte "Select" (dvs att den kollar om någon tagg blev vald)
             if($tag != "Select" && $tag != null){
                 $tagV = setTag($tag); 
                 $stmt = $conn->prepare("INSERT INTO Posts (UserID, Title, Content, Anonymous, TagID) VALUES (?, ?, ?, ?, ?)");
