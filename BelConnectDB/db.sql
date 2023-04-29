@@ -2,7 +2,7 @@ DROP database BelConnectDB;
 Create database BelConnectDB;
 use BelConnectDB;
 
-
+#tabel där alla användare sparas
 Create table IF NOT exists Users(
 	UserID int primary key auto_increment,
 	Firstname varchar (200),
@@ -15,13 +15,13 @@ Create table IF NOT exists Users(
     RegistrationDate DATETIME DEFAULT current_timestamp
 );
 
-
+#tabel där alla taggs sparas
 Create table if not exists Tags(
 TagID int primary key auto_increment,
 Tagname varchar(200)
 );
 
-
+#skapar de en gång så att varje post inte behöver en unik tag (undeviker att skapa extra data)
 insert into Tags ( Tagname) values
 ("Programing"),
 ("Food"),
@@ -30,7 +30,7 @@ insert into Tags ( Tagname) values
 ("Other");
 
 
-
+#en tabel där jag sparar alla inlägg
 Create table if not exists posts (
   PostId int primary key auto_increment,
   UserID int,
@@ -44,6 +44,7 @@ Create table if not exists posts (
   FOREIGN KEY (TagID) REFERENCES Tags(TagID)
 );
 
+#en tabel för secret questions
 CREATE TABLE user_secret_questions (
     user_secret_questions_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
@@ -52,6 +53,7 @@ CREATE TABLE user_secret_questions (
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
+#en tabel för alla profil bilder
 CREATE TABLE Profile_pic(
 	Profile_picID int primary key auto_increment,
 	UserID int,
